@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de la Segunda Guerra Mundial</title>
+    <!-- Tailwind CSS para diseño moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+        .title-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Transición suave para el mapa interactivo */
+        .map-region {
+            transition: fill 0.5s ease, stroke 0.5s ease, filter 0.3s ease;
+        }
+        .map-region:hover {
+            filter: brightness(1.2);
+            cursor: pointer;
+        }
+        /* Animaciones para simulaciones activas */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .battle-flash {
+            animation: pulse-glow 2s infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-900">
+
+<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">🌎</span>
+            <div>
+                <h1 class="text-xl font-bold title-font tracking-wide bg-gradient-to-r from-amber-400 to-rose-500 bg-clip-text text-transparent">WWII: Mapa de los Bandos</h1>
+                <p class="text-xs text-slate-400">Simulación Interactiva del Conflicto (1939 - 1945)</p>
+            </div>
+        </div>
+        
+        <!-- Controles globales -->
+        <div class="flex items-center gap-3">
+            <!-- Glosario rápido interactivo -->
+            <button onclick="toggleGlossary()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1 transition-all">
+                <span>📖</span> Guía de Bandos
+            </button>
+            <!-- Sonido táctico -->
+            <button id="soundToggleBtn" onclick="toggleMute()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1 transition-all">
+                <span id="soundIcon">🔊</span> Sonido
+            </button>
+            <div class="hidden md:flex text-xs bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1.5 rounded-lg">
+                <span>💡 Usa las flechas o haz clic en los años</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Ventana Emergente del Glosario de Bandos -->
+<div id="glossaryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="toggleGlossary()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+        <h3 class="text-xl font-bold title-font text-amber-400 mb-4 flex items-center gap-2">📖 Guía de Bandos de la WWII</h3>
+        <div class="space-y-4">
+            <div class="p-3 bg-blue-950/40 border border-blue-500/30 rounded-xl">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-3.5 h-3.5 rounded-full bg-blue-500"></span>
+                    <strong class="text-blue-300">Los Aliados</strong>
+                </div>
+                <p class="text-xs text-slate-300">Coalición liderada por Reino Unido, la Unión Soviética, Estados Unidos y Francia para combatir la expansión militar de las potencias fascistas.</p>
+            </div>
+            <div class="p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span>
+                    <strong class="text-rose-300">El Eje</strong>
+                </div>
+                <p class="text-xs text-slate-300">Alianza militar encabezada por la Alemania Nazi, el Reino de Italia y el Imperio del Japón, buscando el control absoluto de Europa y Asia.</p>
+            </div>
+            <div class="p-3 bg-slate-800/50 border border-slate-700/50 rounded-xl">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-3.5 h-3.5 rounded-full bg-slate-400"></span>
+                    <strong class="text-slate-300">Neutrales / No Alineados</strong>
+                </div>
+                <p class="text-xs text-slate-400">Países que no declararon guerra de manera oficial o que mantuvieron un perfil diplomático sin unirse activamente a ninguna de las coaliciones principales.</p>
+            </div>
+        </div>
+        <button onclick="toggleGlossary()" class="mt-6 w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded-xl transition-all text-sm">Entendido</button>
+    </div>
+</div>
+
+<main class="max-w-7xl mx-auto w-full px-4 py-4 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- COLUMNA IZQUIERDA: Panel Educativo con Timeline e Información de Eventos -->
+    <section class="lg:col-span-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between h-full min-h-[500px] shadow-xl backdrop-blur-sm">
+        
+        <!-- Indicador de Progreso del Tiempo -->
+        <div class="mb-4">
+            <div class="flex justify-between items-center text-xs text-slate-400 mb-1.5">
+                <span class="font-semibold text-amber-500 tracking-wider uppercase">Fase del Conflicto</span>
+                <span id="stepCounter" class="bg-slate-800 px-2 py-0.5 rounded text-slate-300">Paso 1 de 8</span>
+            </div>
+            <!-- Barra de progreso visual -->
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-full transition-all duration-500" style="width: 12.5%;"></div>
+            </div>
+        </div>
+
+        <!-- Tarjeta del Evento Activo -->
+        <div class="flex-grow flex flex-col justify-center my-4 py-4 border-y border-slate-800/60">
+            <div class="flex items-center gap-2 mb-2">
+                <span id="eventDate" class="text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20">Septiembre 1939</span>
+                <span id="eventRegion" class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Frente Europeo</span>
+            </div>
+            
+            <h2 id="eventTitle" class="text-2xl font-bold title-font text-white mb-3">Invasión de Polonia</h2>
+            
+            <!-- Resumen estrictamente menor a 30 palabras -->
+            <div class="relative bg-slate-950/50 rounded-xl p-4 border border-slate-800/80 mb-4 min-h-[90px] flex items-center">
+                <p id="eventDesc" class="text-sm md:text-base text-slate-300 leading-relaxed font-light">
+                    Alemania invade Polonia usando la táctica "Blitzkrieg". Reino Unido y Francia responden declarando la guerra, dando inicio oficial a la Segunda Guerra Mundial.
+                </p>
+                <!-- Indicador visual de longitud de palabras -->
+                <span id="wordCounter" class="absolute bottom-1 right-2 text-[9px] text-slate-500">24 palabras</span>
+            </div>
+
+            <!-- Foco Estratégico actual -->
+            <div id="strategicFocus" class="bg-slate-900 p-3 rounded-xl border border-slate-800/80 flex items-center gap-3">
+                <div class="text-2xl" id="focusIcon">⚔️</div>
+                <div class="text-xs">
+                    <div class="font-semibold text-slate-300">Impacto clave:</div>
+                    <div id="focusDesc" class="text-slate-400">Se definen los bloques bélicos principales de Europa Occidental.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Navegación del Simulador -->
+        <div class="mt-4">
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <!-- Botón Retroceder -->
+                <button id="prevBtn" onclick="prevStep()" class="group bg-slate-800 hover:bg-slate-700 active:scale-95 text-white py-3.5 px-4 rounded-xl border border-slate-700 flex items-center justify-center gap-2 transition-all disabled:opacity-30 disabled:pointer-events-none">
+                    <span class="transform group-hover:-translate-x-1 transition-transform">◀</span>
+                    <span class="text-sm font-semibold">Anterior</span>
+                </button>
+                <!-- Botón Avanzar -->
+                <button id="nextBtn" onclick="nextStep()" class="group bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all">
+                    <span class="text-sm">Siguiente</span>
+                    <span class="transform group-hover:translate-x-1 transition-transform">▶</span>
+                </button>
+            </div>
+
+            <!-- Reproductor Automático y Barra rápida -->
+            <div class="flex items-center justify-between gap-2 bg-slate-950/40 p-2 rounded-xl border border-slate-800/60">
+                <button id="playBtn" onclick="togglePlay()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-amber-400 transition-all">
+                    <span id="playIcon">▶</span> <span id="playText">Reproducción</span>
+                </button>
+                <div class="flex items-center gap-1">
+                    <span class="text-[10px] text-slate-500 font-semibold mr-1">Ir a:</span>
+                    <button onclick="setStep(0)" class="year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">39</button>
+                    <button onclick="setStep(1)" class="year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">40</button>
+                    <button onclick="setStep(2)" class="year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">41</button>
+                    <button onclick="setStep(4)" class="year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">42</button>
+                    <button onclick="setStep(5)" class="year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">44</button>
+                    <button onclick="setStep(7)" class="year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">45</button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- COLUMNA DERECHA: Mapa Táctico de Bandos + Estadísticas Dinámicas -->
+    <section class="lg:col-span-7 flex flex-col gap-6 w-full">
+        
+        <!-- Contenedor del Mapa Táctico -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+            <!-- Marcadores de Estado Flotantes -->
+            <div class="absolute top-4 left-4 z-10 bg-slate-950/85 backdrop-blur-md border border-slate-800 p-3 rounded-xl shadow-lg flex flex-col gap-1.5 text-[10px]">
+                <span class="text-[11px] font-bold text-slate-300 mb-1 border-b border-slate-800 pb-1 flex items-center gap-1">🗺️ Leyenda</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/30"></span> Aliados</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/30"></span> Eje</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> Neutrales / No alineados</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Zona de conflicto activa</span>
+            </div>
+
+            <div class="absolute top-4 right-4 z-10 bg-slate-950/85 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-xl shadow-lg text-[10px] flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="font-mono text-slate-300" id="tacticalYear">AÑO: 1939</span>
+            </div>
+
+            <!-- Mapa interactivo esquemático optimizado y completamente responsive -->
+            <div class="w-full h-[320px] md:h-[400px] bg-slate-950 rounded-xl relative flex items-center justify-center p-2 border border-slate-800/60">
+                <svg id="wwiiMap" class="w-full h-full" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Fondo de rejilla táctica militar -->
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5" />
+                        </pattern>
+                    </defs>
+                    <rect width="1000" height="500" fill="url(#grid)" rx="8" />
+
+                    <!-- AMÉRICA DEL NORTE (USA / CANADA) -->
+                    <path id="NorthAmerica" class="map-region fill-slate-500 stroke-slate-900 stroke-width-1" 
+                          d="M 50 100 L 250 100 L 280 150 L 240 220 L 150 250 L 110 200 L 80 180 Z" />
+                    <text x="140" y="160" class="fill-slate-100 font-bold pointer-events-none text-[12px] opacity-75 title-font" text-anchor="middle">NORTEAMÉRICA</text>
+
+                    <!-- REINO UNIDO -->
+                    <path id="UnitedKingdom" class="map-region fill-blue-500 stroke-slate-900 stroke-width-1" 
+                          d="M 370 120 L 400 120 L 410 145 L 390 170 L 375 150 Z" />
+                    <text x="365" y="110" class="fill-slate-300 font-bold pointer-events-none text-[10px]" text-anchor="middle">R. UNIDO</text>
+
+                    <!-- FRANCIA -->
+                    <path id="France" class="map-region fill-blue-500 stroke-slate-900 stroke-width-1" 
+                          d="M 390 180 L 430 180 L 440 210 L 390 220 Z" />
+                    <text x="375" y="210" class="fill-slate-300 font-semibold pointer-events-none text-[10px]" text-anchor="middle">FRANCIA</text>
+
+                    <!-- ALEMANIA / EUROPA CENTRAL -->
+                    <path id="Germany" class="map-region fill-rose-500 stroke-slate-900 stroke-width-1" 
+                          d="M 440 160 L 490 160 L 510 185 L 470 210 L 440 190 Z" />
+                    <text x="475" y="150" class="fill-rose-300 font-bold pointer-events-none text-[11px]" text-anchor="middle">ALEMANIA</text>
+
+                    <!-- EUROPA DEL ESTE / POLONIA -->
+                    <path id="Poland" class="map-region fill-blue-500 stroke-slate-900 stroke-width-1" 
+                          d="M 500 160 L 550 160 L 550 185 L 500 185 Z" />
+                    <text x="525" y="150" class="fill-slate-400 font-semibold pointer-events-none text-[9px]" id="polandLabel" text-anchor="middle">POLONIA</text>
+
+                    <!-- ITALIA / MEDITERRÁNEO -->
+                    <path id="Italy" class="map-region fill-slate-500 stroke-slate-900 stroke-width-1" 
+                          d="M 455 210 L 485 215 L 490 250 L 475 250 Z" />
+                    <text x="460" y="245" class="fill-slate-300 font-semibold pointer-events-none text-[10px]" text-anchor="middle">ITALIA</text>
+
+                    <!-- UNIÓN SOVIÉTICA (URSS) -->
+                    <path id="USSR" class="map-region fill-slate-500 stroke-slate-900 stroke-width-1" 
+                          d="M 550 110 L 800 110 L 820 180 L 780 250 L 560 210 Z" />
+                    <text x="680" y="160" class="fill-slate-100 font-bold pointer-events-none text-[14px] opacity-75 title-font" text-anchor="middle">U.R.S.S.</text>
+
+                    <!-- ÁFRICA DEL NORTE -->
+                    <path id="NorthAfrica" class="map-region fill-slate-500 stroke-slate-900 stroke-width-1" 
+                          d="M 350 260 L 550 260 L 530 320 L 370 320 Z" />
+                    <text x="450" y="295" class="fill-slate-300 font-semibold pointer-events-none text-[11px]" text-anchor="middle">ÁFRICA NORTE</text>
+
+                    <!-- JAPÓN / COSTA DE ASIA -->
+                    <path id="Japan" class="map-region fill-rose-500 stroke-slate-900 stroke-width-1" 
+                          d="M 850 150 L 890 150 L 910 200 L 870 240 L 840 210 Z" />
+                    <text x="910" y="145" class="fill-rose-300 font-bold pointer-events-none text-[11px]" text-anchor="middle">JAPÓN</text>
+
+                    <!-- AMÉRICA DEL SUR -->
+                    <path id="SouthAmerica" class="map-region fill-slate-500 stroke-slate-900 stroke-width-1" 
+                          d="M 200 300 L 290 320 L 270 450 L 220 480 L 180 380 Z" />
+                    <text x="235" y="380" class="fill-slate-400 font-semibold pointer-events-none text-[11px]" text-anchor="middle">SUDAMÉRICA</text>
+
+                    <!-- AUSTRALIA -->
+                    <path id="Australia" class="map-region fill-slate-500 stroke-slate-900 stroke-width-1" 
+                          d="M 820 380 L 940 370 L 920 450 L 810 440 Z" />
+                    <text x="870" y="415" class="fill-slate-300 font-semibold pointer-events-none text-[11px]" text-anchor="middle">AUSTRALIA</text>
+
+                    <!-- ARROW / FLASH BÉLICO DINÁMICO (Por código JS) -->
+                    <g id="combatEffect" class="battle-flash pointer-events-none">
+                        <!-- Círculo de combate que pulsa -->
+                        <circle id="combatTarget" cx="495" cy="175" r="22" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="5,5" />
+                        <line id="combatArrow" x1="470" y1="175" x2="495" y2="175" stroke="#f59e0b" stroke-width="4" marker-end="url(#arrow)" />
+                    </g>
+
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" />
+                        </marker>
+                    </defs>
+                </svg>
+
+                <!-- Tarjeta informativa de país seleccionado -->
+                <div id="countryTooltip" class="absolute bottom-4 left-4 right-4 bg-slate-950/90 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between text-xs pointer-events-none transition-all duration-300 opacity-0 transform translate-y-2">
+                    <span class="font-bold text-amber-400" id="tooltipCountryName">País</span>
+                    <span class="text-slate-300" id="tooltipCountrySide">Bando</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Balance de Fuerzas -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
+                <div class="mb-3">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider title-font flex items-center gap-1">📊 Control de Territorio Mundial</h4>
+                    <p class="text-[10px] text-slate-400">Cambio estimado en la hegemonía global de cada bloque</p>
+                </div>
+                <div class="space-y-3">
+                    <!-- Aliados -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-blue-400 font-semibold">Aliados</span>
+                            <span class="font-mono text-blue-300" id="alliedPercentage">35%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+                            <div id="alliedBar" class="bg-blue-500 h-full transition-all duration-700" style="width: 35%;"></div>
+                        </div>
+                    </div>
+                    <!-- Eje -->
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-rose-400 font-semibold">El Eje</span>
+                            <span class="font-mono text-rose-300" id="axisPercentage">20%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+                            <div id="axisBar" class="bg-rose-500 h-full transition-all duration-700" style="width: 20%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Educativo Rápido (Zona de Reclutas) -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
+                <div>
+                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider title-font flex items-center gap-1">🧠 Desafío de Aprendizaje</h4>
+                    <p class="text-[10px] text-slate-400">¡Prueba tus conocimientos de esta fase!</p>
+                </div>
+                <!-- Pregunta Dinámica -->
+                <div class="my-2 p-2 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                    <p id="triviaQuestion" class="text-xs font-semibold text-slate-200">¿Qué acontecimiento desató oficialmente la declaración de guerra de Francia y Reino Unido?</p>
+                </div>
+                <!-- Opciones -->
+                <div class="grid grid-cols-2 gap-2" id="triviaOptions">
+                    <!-- Dinámico -->
+                    <button class="bg-slate-800 hover:bg-slate-700 text-[10px] py-1.5 px-2 rounded-lg text-slate-300 text-left transition-all">Opción A</button>
+                    <button class="bg-slate-800 hover:bg-slate-700 text-[10px] py-1.5 px-2 rounded-lg text-slate-300 text-left transition-all">Opción B</button>
+                </div>
+                <!-- Feedback del Quiz -->
+                <div id="triviaFeedback" class="text-[10px] text-center font-bold text-slate-400 mt-2 min-h-[15px]"></div>
+            </div>
+
+        </div>
+
+    </section>
+</main>
+
+<footer class="border-t border-slate-800 bg-slate-950/80 py-4 px-4 text-center mt-6">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500">
+        <p>© 2026 - WWII Simulador de Historia. Hecho para educación interactiva.</p>
+        <div class="flex gap-4">
+            <span class="hover:text-slate-300 transition-colors">Aliados: Azul</span>
+            <span class="hover:text-slate-300 transition-colors">Eje: Rojo</span>
+            <span class="hover:text-slate-300 transition-colors">Neutrales: Gris</span>
+        </div>
+    </div>
+</footer>
+
+<script>
+/* Audio Engine (Web Audio API) para no requerir archivos externos */
+let audioContext = null;
+let isMuted = false;
+
+function playSound(type) {
+    if (isMuted) return;
+    try {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+
+        const osc = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        if (type === 'click') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.1);
+        } else if (type === 'success') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440, audioContext.currentTime);
+            osc.frequency.setValueAtTime(880, audioContext.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.25);
+        } else if (type === 'error') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, audioContext.currentTime);
+            osc.frequency.setValueAtTime(110, audioContext.currentTime + 0.15);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.3);
+        } else if (type === 'transition') {
+            // Sonido táctico de radar/transición
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.35);
+            gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.4);
+        }
+    } catch (e) {
+        console.log("Audio no iniciado por políticas del navegador.");
+    }
+}
+
+function toggleMute() {
+    isMuted = !isMuted;
+    const btn = document.getElementById("soundToggleBtn");
+    const icon = document.getElementById("soundIcon");
+    if (isMuted) {
+        icon.innerText = "🔇";
+        btn.classList.add("bg-rose-500/10", "border-rose-500/30", "text-rose-400");
+    } else {
+        icon.innerText = "🔊";
+        btn.classList.remove("bg-rose-500/10", "border-rose-500/30", "text-rose-400");
+        playSound('click');
+    }
+}
+
+// Datos de cada hito de la simulación
+const steps = [
+    {
+        year: 1939,
+        date: "Septiembre 1939",
+        title: "Invasión de Polonia",
+        desc: "Alemania invade Polonia usando la táctica 'Blitzkrieg'. Reino Unido y Francia responden declarando la guerra, dando inicio oficial a la Segunda Guerra Mundial.",
+        focusRegion: "Frente Europeo",
+        focusIcon: "⚔️",
+        focusDesc: "Se definen los bloques bélicos principales de Europa Occidental.",
+        combat: { cx: 525, cy: 172, x1: 475, y1: 172, x2: 525, y2: 172 },
+        alliedPct: 35,
+        axisPct: 20,
+        mapStates: {
+            NorthAmerica: "blue",
+            UnitedKingdom: "blue",
+            France: "blue",
+            Germany: "rose",
+            Poland: "blue", // Será invadido después del flash
+            Italy: "neutral", // Aún no entra oficialmente
+            USSR: "neutral", // Pacto Molotov-Ribbentrop inicial
+            Japan: "rose",
+            NorthAfrica: "neutral",
+            SouthAmerica: "neutral",
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Quién invadió Polonia en 1939 desatando la guerra?",
+            options: ["Alemania", "Unión Soviética"],
+            correct: 0
+        }
+    },
+    {
+        year: 1940,
+        date: "Mayo - Junio 1940",
+        title: "Caída de Francia",
+        desc: "Las fuerzas alemanas invaden rápidamente Francia y los Países Bajos. Francia firma el armisticio y el Reino Unido queda prácticamente solo frente al Eje.",
+        focusRegion: "Frente Occidental",
+        focusIcon: "🛡️",
+        focusDesc: "Francia queda bajo ocupación; Italia entra a la guerra junto al Eje.",
+        combat: { cx: 410, cy: 200, x1: 460, y1: 180, x2: 410, y2: 200 },
+        alliedPct: 20, // Caída drástica de los aliados
+        axisPct: 45, // Expansión del eje
+        mapStates: {
+            NorthAmerica: "blue",
+            UnitedKingdom: "blue",
+            France: "rose", // Ocupada
+            Germany: "rose",
+            Poland: "rose", // Anexada
+            Italy: "rose", // Entra oficialmente
+            USSR: "neutral",
+            Japan: "rose",
+            NorthAfrica: "rose", // Territorio controlado por Italia y Francia ocupada
+            SouthAmerica: "neutral",
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Qué nación importante de Europa Occidental cayó ante Alemania en 1940?",
+            options: ["Francia", "Reino Unido"],
+            correct: 0
+        }
+    },
+    {
+        year: 1941,
+        date: "Junio 1941",
+        title: "Operación Barbarroja",
+        desc: "Alemania rompe el pacto de no agresión e invade la Unión Soviética, abriendo el devastador Frente Oriental y sumando a la URSS a los Aliados.",
+        focusRegion: "Frente Oriental",
+        focusIcon: "❄️",
+        focusDesc: "El frente de batalla más masivo de la historia humana se abre en el este.",
+        combat: { cx: 620, cy: 160, x1: 500, y1: 170, x2: 600, y2: 160 },
+        alliedPct: 40, // URSS se une
+        axisPct: 50,
+        mapStates: {
+            NorthAmerica: "blue",
+            UnitedKingdom: "blue",
+            France: "rose",
+            Germany: "rose",
+            Poland: "rose",
+            Italy: "rose",
+            USSR: "blue", // Se suma a los Aliados
+            Japan: "rose",
+            NorthAfrica: "rose",
+            SouthAmerica: "neutral",
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Qué gran país invadió Alemania en la Operación Barbarroja?",
+            options: ["Unión Soviética", "Estados Unidos"],
+            correct: 0
+        }
+    },
+    {
+        year: 1941,
+        date: "Diciembre 1941",
+        title: "Ataque a Pearl Harbor",
+        desc: "Japón ataca por sorpresa la base naval estadounidense en Hawái. Estados Unidos entra oficialmente a la guerra, uniendo su inmenso poder industrial a los Aliados.",
+        focusRegion: "Frente del Pacífico",
+        focusIcon: "🚢",
+        focusDesc: "La guerra se convierte en un conflicto global total, integrando a EE.UU.",
+        combat: { cx: 200, cy: 150, x1: 850, y1: 190, x2: 150, y2: 180 }, // Flecha transpacífica
+        alliedPct: 60, // Enorme refuerzo industrial
+        axisPct: 35,
+        mapStates: {
+            NorthAmerica: "blue", // Totalmente beligerante
+            UnitedKingdom: "blue",
+            France: "rose",
+            Germany: "rose",
+            Poland: "rose",
+            Italy: "rose",
+            USSR: "blue",
+            Japan: "rose",
+            NorthAfrica: "rose",
+            SouthAmerica: "neutral", // Mayoría rompe relaciones pero neutrales activos
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Qué evento provocó la entrada oficial de EE.UU. en la guerra?",
+            options: ["Ataque a Pearl Harbor", "Invasión de Polonia"],
+            correct: 0
+        }
+    },
+    {
+        year: 1942,
+        date: "1942 - Principios 1943",
+        title: "Batalla de Stalingrado",
+        desc: "El ejército soviético rodea y destruye al Sexto Ejército alemán en Stalingrado, marcando el punto de inflexión decisivo del conflicto en Europa.",
+        focusRegion: "Frente Oriental",
+        focusIcon: "🎖️",
+        focusDesc: "Comienza el avance imparable de la URSS hacia Berlín.",
+        combat: { cx: 580, cy: 190, x1: 580, y1: 190, x2: 520, y2: 180 }, // Flecha de contraofensiva
+        alliedPct: 65,
+        axisPct: 30,
+        mapStates: {
+            NorthAmerica: "blue",
+            UnitedKingdom: "blue",
+            France: "rose",
+            Germany: "rose",
+            Poland: "rose",
+            Italy: "rose",
+            USSR: "blue",
+            Japan: "rose",
+            NorthAfrica: "blue", // Aliados ganan el norte de África
+            SouthAmerica: "neutral",
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Qué batalla es considerada el gran punto de inflexión en Europa?",
+            options: ["Batalla de Stalingrado", "Batalla de Francia"],
+            correct: 0
+        }
+    },
+    {
+        year: 1944,
+        date: "Junio 1944",
+        title: "El Desembarco de Normandía",
+        desc: "Fuerzas aliadas desembarcan en las playas de Normandía, Francia, abriendo el Frente Occidental para liberar Europa y acorralar a la Alemania nazi.",
+        focusRegion: "Frente Occidental",
+        focusIcon: "🏖️",
+        focusDesc: "Se rompe el muro atlántico nazi y comienza la liberación de Europa.",
+        combat: { cx: 400, cy: 190, x1: 385, y1: 145, x2: 400, y2: 190 }, // De UK a Francia
+        alliedPct: 75,
+        axisPct: 20,
+        mapStates: {
+            NorthAmerica: "blue",
+            UnitedKingdom: "blue",
+            France: "blue", // Liberándose
+            Germany: "rose",
+            Poland: "rose",
+            Italy: "blue", // Italia se rinde / es liberada
+            USSR: "blue",
+            Japan: "rose",
+            NorthAfrica: "blue",
+            SouthAmerica: "neutral",
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Cómo es conocido popularmente el desembarco de Normandía?",
+            options: ["Día D", "Operación Barbarroja"],
+            correct: 0
+        }
+    },
+    {
+        year: 1945,
+        date: "Mayo 1945",
+        title: "La Caída de Berlín",
+        desc: "Las tropas soviéticas toman Berlín, provocando el suicidio de Hitler y la rendición incondicional de Alemania. La guerra termina en Europa.",
+        focusRegion: "Europa Central",
+        focusIcon: "🏢",
+        focusDesc: "Termina el régimen nazi; Berlín es ocupado por fuerzas aliadas.",
+        combat: { cx: 475, cy: 175, x1: 550, y1: 175, x2: 475, y2: 175 }, // De URSS hacia Berlín
+        alliedPct: 90,
+        axisPct: 5, // Solo queda Japón combatiendo
+        mapStates: {
+            NorthAmerica: "blue",
+            UnitedKingdom: "blue",
+            France: "blue",
+            Germany: "blue", // Ocupada/Rendida
+            Poland: "blue",
+            Italy: "blue",
+            USSR: "blue",
+            Japan: "rose", // Resiste sola
+            NorthAfrica: "blue",
+            SouthAmerica: "neutral",
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Qué ciudad fue tomada por el ejército soviético en mayo de 1945?",
+            options: ["Berlín", "Tokio"],
+            correct: 0
+        }
+    },
+    {
+        year: 1945,
+        date: "Agosto - Septiembre 1945",
+        title: "Paz Mundial",
+        desc: "Estados Unidos lanza bombas atómicas sobre Hiroshima y Nagasaki. Japón se rinde incondicionalmente, finalizando la Segunda Guerra Mundial por completo.",
+        focusRegion: "Frente de Asia-Pacífico",
+        focusIcon: "🕊️",
+        focusDesc: "Fin definitivo de las hostilidades a nivel global.",
+        combat: { cx: 880, cy: 180, x1: 850, y1: 180, x2: 880, y2: 180 },
+        alliedPct: 100,
+        axisPct: 0,
+        mapStates: {
+            NorthAmerica: "blue",
+            UnitedKingdom: "blue",
+            France: "blue",
+            Germany: "blue",
+            Poland: "blue",
+            Italy: "blue",
+            USSR: "blue",
+            Japan: "blue", // Rendida y desmilitarizada
+            NorthAfrica: "blue",
+            SouthAmerica: "neutral",
+            Australia: "blue"
+        },
+        trivia: {
+            q: "¿Con la rendición de qué imperio finaliza por completo la WWII?",
+            options: ["Imperio del Japón", "Imperio Alemán"],
+            correct: 0
+        }
+    }
+];
+
+let currentStep = 0;
+let playInterval = null;
+
+function updateUI() {
+    const data = steps[currentStep];
+
+    // Actualizar Textos educativos
+    document.getElementById("eventDate").innerText = data.date;
+    document.getElementById("eventRegion").innerText = data.focusRegion;
+    document.getElementById("eventTitle").innerText = data.title;
+    document.getElementById("eventDesc").innerText = data.desc;
+    document.getElementById("focusIcon").innerText = data.focusIcon;
+    document.getElementById("focusDesc").innerText = data.focusDesc;
+
+    // Contador de palabras del resumen para comprobar que no supere las 30 palabras
+    const wordCount = data.desc.split(/\s+/).filter(Boolean).length;
+    document.getElementById("wordCounter").innerText = `${wordCount} palabras`;
+
+    // Cambiar estado de la barra de progreso
+    document.getElementById("stepCounter").innerText = `Paso ${currentStep + 1} de ${steps.length}`;
+    document.getElementById("progressBar").style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+
+    // Actualizar indicador del año táctico del mapa
+    document.getElementById("tacticalYear").innerText = `AÑO: ${data.year}`;
+
+    // Actualizar Mapa SVG (Cambiar colores de las regiones según los bandos)
+    Object.keys(data.mapStates).forEach(regionId => {
+        const path = document.getElementById(regionId);
+        if (path) {
+            const side = data.mapStates[regionId];
+            if (side === "blue") {
+                path.style.fill = "#3b82f6"; // Azul Tailwind (Aliados)
+            } else if (side === "rose") {
+                path.style.fill = "#ef4444"; // Rojo/Rose (Eje)
+            } else {
+                path.style.fill = "#64748b"; // Gris Slate (Neutral)
+            }
+        }
+    });
+
+    // Actualizar posiciones de flechas y círculos de combate
+    const combatEff = document.getElementById("combatEffect");
+    const combatTar = document.getElementById("combatTarget");
+    const combatArr = document.getElementById("combatArrow");
+
+    if (data.combat) {
+        combatEff.style.display = "block";
+        combatTar.setAttribute("cx", data.combat.cx);
+        combatTar.setAttribute("cy", data.combat.cy);
+        combatArr.setAttribute("x1", data.combat.x1);
+        combatArr.setAttribute("y1", data.combat.y1);
+        combatArr.setAttribute("x2", data.combat.x2);
+        combatArr.setAttribute("y2", data.combat.y2);
+    } else {
+        combatEff.style.display = "none";
+    }
+
+    // Actualizar las barras de balance de fuerzas territoriales
+    document.getElementById("alliedPercentage").innerText = `${data.alliedPct}%`;
+    document.getElementById("alliedBar").style.width = `${data.alliedPct}%`;
+    document.getElementById("axisPercentage").innerText = `${data.axisPct}%`;
+    document.getElementById("axisBar").style.width = `${data.axisPct}%`;
+
+    // Actualizar botones de años rápidos
+    document.querySelectorAll(".year-selector").forEach((btn, index) => {
+        if (index === currentStep || (currentStep >= 5 && index === 4 && data.year === 1944)) {
+            btn.className = "year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-amber-500 text-slate-950";
+        } else {
+            btn.className = "year-selector w-7 h-7 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-all";
+        }
+    });
+
+    // Deshabilitar botón previo si es el inicio
+    document.getElementById("prevBtn").disabled = currentStep === 0;
+    
+    // Cambiar texto de "Siguiente" a "Finalizar" o reiniciar en el último paso
+    const nextBtnSpan = document.querySelector("#nextBtn span");
+    if (currentStep === steps.length - 1) {
+        nextBtnSpan.innerText = "Reiniciar";
+    } else {
+        nextBtnSpan.innerText = "Siguiente";
+    }
+
+    // Cargar Trivia del paso actual
+    loadTrivia();
+}
+
+// Navegaciones interactiva
+function nextStep() {
+    playSound('transition');
+    if (currentStep < steps.length - 1) {
+        currentStep++;
+    } else {
+        currentStep = 0; // Bucle infinito de simulación
+    }
+    updateUI();
+}
+
+function prevStep() {
+    if (currentStep > 0) {
+        playSound('transition');
+        currentStep--;
+        updateUI();
+    }
+}
+
+function setStep(index) {
+    if (index >= 0 && index < steps.length) {
+        playSound('click');
+        currentStep = index;
+        updateUI();
+    }
+}
+
+// Reproducción automática de la línea de tiempo
+function togglePlay() {
+    const playIcon = document.getElementById("playIcon");
+    const playText = document.getElementById("playText");
+    const playBtn = document.getElementById("playBtn");
+
+    if (playInterval) {
+        clearInterval(playInterval);
+        playInterval = null;
+        playIcon.innerText = "▶";
+        playText.innerText = "Reproducción";
+        playBtn.classList.remove("bg-amber-500", "text-slate-950");
+        playBtn.classList.add("bg-slate-800", "text-amber-400");
+        playSound('click');
+    } else {
+        playSound('success');
+        playIcon.innerText = "⏸";
+        playText.innerText = "Pausar";
+        playBtn.classList.add("bg-amber-500", "text-slate-950");
+        playBtn.classList.remove("bg-slate-800", "text-amber-400");
+        
+        playInterval = setInterval(() => {
+            nextStep();
+        }, 5000); // Avanzar automáticamente cada 5 segundos
+    }
+}
+
+// Mostrar/Ocultar Glosario
+function toggleGlossary() {
+    playSound('click');
+    const modal = document.getElementById("glossaryModal");
+    modal.classList.toggle("hidden");
+}
+
+function loadTrivia() {
+    const triviaData = steps[currentStep].trivia;
+    document.getElementById("triviaQuestion").innerText = triviaData.q;
+    
+    const optionsContainer = document.getElementById("triviaOptions");
+    optionsContainer.innerHTML = "";
+    document.getElementById("triviaFeedback").innerText = "";
+    document.getElementById("triviaFeedback").className = "text-[10px] text-center font-bold text-slate-400 mt-2 min-h-[15px]";
+
+    triviaData.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "bg-slate-800 hover:bg-slate-700 text-[10px] py-1.5 px-2 rounded-lg text-slate-300 text-left transition-all border border-slate-700/50 hover:border-slate-600 active:scale-95";
+        btn.innerText = opt;
+        btn.onclick = () => checkTriviaAnswer(idx, triviaData.correct);
+        optionsContainer.appendChild(btn);
+    });
+}
+
+function checkTriviaAnswer(selectedIdx, correctIdx) {
+    const feedback = document.getElementById("triviaFeedback");
+    const optionsButtons = document.querySelectorAll("#triviaOptions button");
+
+    optionsButtons.forEach((btn, idx) => {
+        btn.disabled = true; // Desactivar respuestas después de seleccionar una
+        if (idx === correctIdx) {
+            btn.classList.add("bg-green-600", "text-white", "border-green-500");
+        } else if (idx === selectedIdx) {
+            btn.classList.add("bg-rose-600", "text-white", "border-rose-500");
+        }
+    });
+
+    if (selectedIdx === correctIdx) {
+        playSound('success');
+        feedback.innerText = "✅ ¡Correcto! Gran conocimiento histórico.";
+        feedback.className = "text-[10px] text-center font-bold text-green-400 mt-2 min-h-[15px] animate-bounce";
+    } else {
+        playSound('error');
+        feedback.innerText = "❌ Incorrecto. Revisa el mapa e inténtalo de nuevo.";
+        feedback.className = "text-[10px] text-center font-bold text-rose-400 mt-2 min-h-[15px]";
+    }
+}
+
+const countryNames = {
+    NorthAmerica: { name: "Norteamérica (Estados Unidos y Canadá)", side: "Aliados (Principal poder industrial)" },
+    UnitedKingdom: { name: "Reino Unido", side: "Aliados (Resistencia heroica en Europa)" },
+    France: { name: "Francia", side: "Aliados (Ocupada por Alemania en 1940 / Liberada en 1944)" },
+    Germany: { name: "Alemania", side: "El Eje (Lideró la expansión militar fascista)" },
+    Poland: { name: "Polonia", side: "Aliados (La invasión a su territorio inició la guerra)" },
+    Italy: { name: "Italia", side: "El Eje (Socio inicial de Alemania, luego liberado)" },
+    USSR: { name: "Unión Soviética (U.R.S.S.)", side: "Aliados (Frente militar más grande y devastador)" },
+    NorthAfrica: { name: "África del Norte", side: "Territorio de combate feroz por el control del Mediterráneo" },
+    Japan: { name: "Imperio del Japón", side: "El Eje (Poder agresivo en Asia y el Pacífico)" },
+    SouthAmerica: { name: "Sudamérica", side: "Neutrales / Aliados (Apoyaron con suministros)" },
+    Australia: { name: "Australia", side: "Aliados (Base de operaciones clave en el Pacífico)" }
+};
+
+document.querySelectorAll(".map-region").forEach(region => {
+    region.addEventListener("mouseenter", (e) => {
+        const regionId = e.target.id;
+        const info = countryNames[regionId];
+        if (info) {
+            const tooltip = document.getElementById("countryTooltip");
+            document.getElementById("tooltipCountryName").innerText = info.name;
+            document.getElementById("tooltipCountrySide").innerText = info.side;
+            tooltip.classList.remove("opacity-0", "translate-y-2");
+            tooltip.classList.add("opacity-100", "translate-y-0");
+        }
+    });
+
+    region.addEventListener("mouseleave", () => {
+        const tooltip = document.getElementById("countryTooltip");
+        tooltip.classList.remove("opacity-100", "translate-y-0");
+        tooltip.classList.add("opacity-0", "translate-y-2");
+    });
+});
+
+// Inicializar la aplicación al cargar
+window.onload = function() {
+    updateUI();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador iPhone para Adultos Mayores</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+        }
+        .iphone-frame {
+            width: 320px;
+            height: 600px;
+            background: #000;
+            border-radius: 40px;
+            padding: 12px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            margin: 20px auto;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 30px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .big-text {
+            font-size: 1.4rem;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+        .step-indicator {
+            background: #007aff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .app-icon-store {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(180deg, #34aadc 0%, #007aff 100%);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .app-icon-store svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+        .btn-blue {
+            background-color: #007aff;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-blue:active {
+            transform: scale(0.95);
+        }
+        .search-bar {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px;
+            text-align: left;
+            color: #888;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="max-w-md mx-auto text-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Guía del iPhone</h1>
+        <p class="text-xl text-gray-600 mt-2">Aprende a bajar aplicaciones en 4 pasos sencillos.</p>
+    </div>
+
+    <div class="iphone-frame">
+        <div class="screen" id="sim-content">
+            <!-- El contenido cambiará mediante JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        const steps = {
+            1: {
+                title: "PASO 1: Busca el icono azul",
+                instruction: "Presiona el icono azul con una 'A' blanca. Se llama <strong>App Store</strong>.",
+                content: `
+                    <div class="flex-1 flex flex-col justify-center items-center p-4">
+                        <div class="app-icon-store" onclick="nextStep()">
+                            <svg viewBox="0 0 24 24"><path d="M12.5 1h-1l-9 19.5 1 .5 2.25-5h12.5l2.25 5 1-.5-9-19.5zm-5.25 13l4.75-10.5 4.75 10.5h-9.5z"/></svg>
+                        </div>
+                        <p class="mt-4 text-center text-gray-700 font-bold">Toca el icono azul para entrar</p>
+                    </div>
+                `
+            },
+            2: {
+                title: "PASO 2: Busca la aplicación",
+                instruction: "Toca la barra gris para escribir el nombre de lo que buscas.",
+                content: `
+                    <div class="p-4">
+                        <h2 class="text-2xl font-bold mb-4">Buscar</h2>
+                        <div class="search-bar" onclick="nextStep()">
+                            🔍 Escriba aquí (ej: WhatsApp)
+                        </div>
+                        <div class="mt-20 text-center">
+                            <p class="text-gray-500">Toca la barra para continuar</p>
+                        </div>
+                    </div>
+                `
+            },
+            3: {
+                title: "PASO 3: Presiona OBTENER",
+                instruction: "Cuando veas la aplicación, toca el botón azul que dice <strong>OBTENER</strong>.",
+                content: `
+                    <div class="p-4 flex flex-col items-center">
+                        <div class="flex items-center w-full bg-gray-50 p-4 rounded-xl shadow-sm border">
+                            <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mr-4">
+                                <svg fill="white" width="40" height="40" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L10 13.17l7.59-7.59L19 7l-8 10z"/></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-lg">WhatsApp</p>
+                                <p class="text-sm text-gray-500">Mensajes gratis</p>
+                            </div>
+                            <button class="btn-blue py-1 px-4 text-sm" onclick="nextStep()">OBTENER</button>
+                        </div>
+                    </div>
+                `
+            },
+            4: {
+                title: "PASO 4: ¡Listo!",
+                instruction: "La aplicación se está descargando. Aparecerá en tu pantalla principal en un momento.",
+                content: `
+                    <div class="flex-1 flex flex-col justify-center items-center p-6 text-center">
+                        <div class="w-24 h-24 text-green-500 mb-6">
+                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 13.17l7.59-7.59L19 7l-8 10z"/></svg>
+                        </div>
+                        <p class="big-text text-green-600 mb-6">¡Felicidades!</p>
+                        <p class="text-gray-700 text-lg mb-8">Has aprendido a descargar aplicaciones de forma segura.</p>
+                        <button class="btn-blue" onclick="resetSim()">Volver a empezar</button>
+                    </div>
+                `
+            }
+        };
+
+        function renderStep() {
+            const step = steps[currentStep];
+            const container = document.getElementById('sim-content');
+            
+            container.innerHTML = `
+                <div class="step-indicator">Paso ${currentStep} de 4</div>
+                <div class="p-6 bg-blue-50 border-b">
+                    <h2 class="text-blue-800 font-bold text-xl mb-2">${step.title}</h2>
+                    <p class="text-gray-800 text-lg">${step.instruction}</p>
+                </div>
+                <div class="flex-1 flex flex-col">
+                    ${step.content}
+                </div>
+            `;
+        }
+
+        function nextStep() {
+            if (currentStep < 4) {
+                currentStep++;
+                renderStep();
+            }
+        }
+
+        function resetSim() {
+            currentStep = 1;
+            renderStep();
+        }
+
+        // Iniciar el simulador
+        renderStep();
+    </script>
+</body>
+</html>

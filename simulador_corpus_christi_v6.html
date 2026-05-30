@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: Alfombra Corpus Christi - Escala y Materiales Originales</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js y OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a2e; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        #sidebar { transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; }
+        .sidebar-hidden { transform: translateX(-100%); width: 0 !important; }
+    </style>
+</head>
+<body class="text-slate-800 flex h-screen w-screen overflow-hidden">
+
+    <!-- Panel Lateral de Controles -->
+    <div id="sidebar" class="w-80 md:w-96 bg-white shadow-2xl flex flex-col flex-shrink-0 z-20 h-full border-r border-slate-200 overflow-y-auto">
+        
+        <!-- Cabecera -->
+        <div class="p-5 border-b border-slate-100 bg-slate-50 sticky top-0 z-10 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-bold text-indigo-900 leading-tight">Proyecto Corpus Christi</h1>
+                <p class="text-xs text-slate-500 font-mono mt-1">SIMULADOR 3D • ESCALA ORIGINAL RESTAURADA</p>
+            </div>
+            <button id="btn-close-sidebar" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors md:hidden">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-5 flex-1 flex flex-col gap-6">
+            
+            <!-- Planimetría Restaurada -->
+            <div class="text-sm text-slate-700 bg-indigo-50 p-4 rounded-xl border border-indigo-200 shadow-inner relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">TAMAÑO CORREGIDO</div>
+                <h3 class="font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                    <i class="ph ph-ruler"></i> Medidas Reales Figura
+                </h3>
+                <ul class="space-y-1.5">
+                    <li class="flex justify-between"><span>Altura Cáliz:</span> <strong class="text-indigo-900">68 cm</strong></li>
+                    <li class="flex justify-between"><span>Ancho Copa:</span> <strong class="text-indigo-900">52 cm</strong> <span class="text-[10px] text-indigo-500 ml-1">(Restaurado)</span></li>
+                    <li class="flex justify-between border-b border-indigo-200 pb-1"><span>Diámetro Hostia:</span> <strong class="text-indigo-900">28 cm</strong></li>
+                    
+                    <li class="flex justify-between pt-1"><span>Alto Total Central:</span> <strong class="text-slate-800">96 cm</strong></li>
+                    <li class="flex justify-between"><span>Margen Libre Arriba/Abajo:</span> <strong class="text-slate-800">87 cm</strong></li>
+                    <li class="flex justify-between text-xs text-slate-500 mt-1 leading-tight">
+                        *El margen lateral a la altura de la copa será de ~79 cm, y en la base del cáliz será de ~89 cm.
+                    </li>
+                </ul>
+            </div>
+
+            <!-- DISEÑO DE ENTORNO (CAPA 6) -->
+            <div>
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="ph ph-palette"></i> Texturas del Entorno (Fondo)
+                </h2>
+                <div class="flex flex-col gap-2">
+                    <label class="flex flex-col p-3 rounded-lg bg-emerald-50 border border-emerald-200 cursor-pointer transition-all relative overflow-hidden" id="lbl-env-1">
+                        <div class="flex items-center">
+                            <input type="radio" name="environment" value="1" checked class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                            <span class="ml-3 text-sm font-bold text-emerald-900">1. Arena Cálida & Buganvilia</span>
+                        </div>
+                        <div class="mt-2 text-xs text-slate-600 ml-7 space-y-1">
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#e5d9c5]"></span> Arena Dunas</span><span class="font-mono font-bold text-slate-800">~60 kg</span></div>
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#d4c12a]"></span> Hojas Litre</span><span class="font-mono font-bold text-slate-800">~3 kg</span></div>
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#d91c5c]"></span> Buganvilia</span><span class="font-mono font-bold text-slate-800">~1.5 kg</span></div>
+                        </div>
+                    </label>
+
+                    <label class="flex flex-col p-3 rounded-lg hover:bg-slate-50 border border-slate-100 cursor-pointer transition-all relative overflow-hidden" id="lbl-env-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="environment" value="2" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                            <span class="ml-3 text-sm font-bold text-slate-800">2. Bosque Rústico</span>
+                        </div>
+                        <div class="mt-2 text-xs text-slate-500 ml-7 space-y-1">
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#8b5a2b]"></span> Pinocha</span><span class="font-mono font-bold text-slate-800">~12 kg</span></div>
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#3e2723]"></span> Piñas Pino</span><span class="font-mono font-bold text-slate-800">~25 kg</span></div>
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#4caf50]"></span> Musgo Verde</span><span class="font-mono font-bold text-slate-800">~4 kg</span></div>
+                        </div>
+                    </label>
+
+                    <label class="flex flex-col p-3 rounded-lg hover:bg-slate-50 border border-slate-100 cursor-pointer transition-all relative overflow-hidden" id="lbl-env-3">
+                        <div class="flex items-center">
+                            <input type="radio" name="environment" value="3" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                            <span class="ml-3 text-sm font-bold text-slate-800">3. Resplandor Cuarzo</span>
+                        </div>
+                        <div class="mt-2 text-xs text-slate-500 ml-7 space-y-1">
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#f28500]"></span> Arena Naranja</span><span class="font-mono font-bold text-slate-800">~45 kg</span></div>
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#f5f5f5] border border-slate-300"></span> Cuarzo Blanco</span><span class="font-mono font-bold text-slate-800">~30 kg</span></div>
+                            <div class="flex justify-between items-center"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#ffeb3b]"></span> Flores Aromo</span><span class="font-mono font-bold text-slate-800">~2 kg</span></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Capas Físicas -->
+            <div>
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="ph ph-stack"></i> Capas de Ensamble (Z)
+                </h2>
+                <div class="flex flex-col gap-2">
+                    <label class="flex items-center space-x-3 p-1.5 rounded hover:bg-slate-50 cursor-pointer border border-transparent">
+                        <input type="checkbox" id="layer1" checked class="w-4 h-4 rounded text-indigo-600">
+                        <span class="text-sm font-medium text-slate-700 flex-1">1. Base Plástica</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-1.5 rounded hover:bg-slate-50 cursor-pointer border border-transparent">
+                        <input type="checkbox" id="layer2" checked class="w-4 h-4 rounded text-amber-600">
+                        <span class="text-sm font-medium text-slate-700 flex-1">2. Grilla Madera</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-1.5 rounded hover:bg-slate-50 cursor-pointer border border-transparent">
+                        <input type="checkbox" id="layer3" checked class="w-4 h-4 rounded text-green-600">
+                        <span class="text-sm font-medium text-slate-700 flex-1">3. Pasto Sintético</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-1.5 rounded bg-emerald-50 border border-emerald-100 cursor-pointer shadow-sm relative">
+                        <input type="checkbox" id="layer6" checked class="w-4 h-4 rounded text-emerald-600">
+                        <span class="text-sm font-bold text-emerald-900 flex-1">4. Fondo Texturizado</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-1.5 rounded hover:bg-slate-50 cursor-pointer border border-transparent">
+                        <input type="checkbox" id="layer4" checked class="w-4 h-4 rounded text-orange-600">
+                        <span class="text-sm font-medium text-slate-700 flex-1">5. Silueta Cartón</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-1.5 rounded bg-indigo-50 border border-indigo-100 cursor-pointer shadow-sm relative">
+                        <input type="checkbox" id="layer5" checked class="w-4 h-4 rounded text-indigo-900">
+                        <span class="text-sm font-bold text-indigo-900 flex-1">6. Figura Central Cáliz/Hostia</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área de Renderizado 3D -->
+    <div id="viewport" class="flex-1 relative bg-[#1a1a2e]">
+        <canvas id="webgl-canvas" class="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+
+        <button id="btn-toggle-sidebar" class="absolute top-4 left-4 p-2 bg-white/10 backdrop-blur-md text-white rounded-lg shadow-lg border border-white/20 hover:bg-white/20 transition-all z-10 flex items-center gap-2 group">
+            <i class="ph ph-list text-xl"></i>
+            <span class="text-sm font-medium hidden md:block group-hover:opacity-100 opacity-70 transition-opacity">Controles / Diseños</span>
+        </button>
+
+        <div class="absolute top-4 right-4 bg-white/10 backdrop-blur-md p-1.5 rounded-xl shadow-lg border border-white/20 flex gap-1 z-10">
+            <button id="cam-iso" class="px-3 py-1.5 bg-transparent text-white/70 hover:text-white text-xs font-medium rounded-lg hover:bg-white/10 transition-colors">Iso</button>
+            <button id="cam-top" class="px-3 py-1.5 bg-indigo-500/80 text-white text-xs font-semibold rounded-lg hover:bg-indigo-500 transition-colors">Planta</button>
+            <button id="cam-front" class="px-3 py-1.5 bg-transparent text-white/70 hover:text-white text-xs font-medium rounded-lg hover:bg-white/10 transition-colors">Frente</button>
+        </div>
+    </div>
+
+    <script>
+        // --- UI GESTIÓN ---
+        const sidebar = document.getElementById('sidebar');
+        const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+        const btnCloseSidebar = document.getElementById('btn-close-sidebar');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('sidebar-hidden');
+            setTimeout(resizeCanvas, 300);
+        }
+        btnToggleSidebar.addEventListener('click', toggleSidebar);
+        btnCloseSidebar.addEventListener('click', toggleSidebar);
+
+        // --- THREE.JS INIT ---
+        const viewport = document.getElementById('viewport');
+        const canvas = document.getElementById('webgl-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e); 
+
+        const camera = new THREE.PerspectiveCamera(45, viewport.clientWidth / viewport.clientHeight, 1, 2000);
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 - 0.05; 
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        dirLight.position.set(100, 200, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+
+        const carpetGroup = new THREE.Group();
+        carpetGroup.rotation.x = -Math.PI / 2;
+        scene.add(carpetGroup);
+
+        const gridHelper = new THREE.GridHelper(400, 40, 0x333344, 0x222233);
+        gridHelper.rotation.x = Math.PI / 2; gridHelper.position.z = -0.1;
+        carpetGroup.add(gridHelper);
+
+        // --- MATERIALES ---
+        function createColorMat(hex, rough = 0.8) { return new THREE.MeshStandardMaterial({ color: hex, roughness: rough }); }
+        function createNoiseTexture(size, color1, color2) {
+            const c = document.createElement('canvas'); c.width = size; c.height = size; const ctx = c.getContext('2d');
+            const c1 = new THREE.Color(color1), c2 = new THREE.Color(color2);
+            for(let i=0; i<size; i+=4) {
+                for(let j=0; j<size; j+=4) { ctx.fillStyle = Math.random() > 0.5 ? c1.getStyle() : c2.getStyle(); ctx.fillRect(i, j, 4, 4); }
+            }
+            const texture = new THREE.CanvasTexture(c);
+            texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(4, 4);
+            return texture;
+        }
+
+        const matPlastic = createColorMat(0x111111);
+        const matWood = new THREE.MeshStandardMaterial({ color: 0xc49b71, map: createNoiseTexture(200, 0xc49b71, 0xab8258) });
+        const matGrass = new THREE.MeshStandardMaterial({ color: 0x3d8c40, map: createNoiseTexture(256, 0x3d8c40, 0x2e6b30) });
+        const matCardboard = createColorMat(0x9e7a52);
+        
+        const matHostia = createColorMat(0xffffff, 0.3); 
+        const matCaliz = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5, metalness: 0.4 });
+        
+        // Entorno
+        const matArena = createColorMat(0xe5d9c5, 1.0); 
+        const matLitre = createColorMat(0xd4c12a, 0.9); 
+        const matBugan = createColorMat(0xd91c5c, 0.6); 
+        const matPinocha = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, map: createNoiseTexture(128, 0x8b5a2b, 0x6b421a) });
+        const matPinas = createColorMat(0x3e2723, 1.0); 
+        const matMusgo = createColorMat(0x4caf50, 0.9); 
+        const matArenaNaranja = createColorMat(0xf28500, 1.0); 
+        const matCuarzo = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.2, metalness: 0.1 }); 
+        const matAromo = createColorMat(0xffeb3b, 0.5); 
+
+        // --- CAPAS ---
+        const layers = {
+            layer1: new THREE.Group(), layer2: new THREE.Group(), layer3: new THREE.Group(),
+            layer6: new THREE.Group(), layer4: new THREE.Group(), layer5: new THREE.Group()
+        };
+        Object.values(layers).forEach(layer => carpetGroup.add(layer));
+
+        // Bases estructurales fijas
+        const meshLayer1 = new THREE.Mesh(new THREE.BoxGeometry(210, 270, 0.1), matPlastic);
+        meshLayer1.position.z = 0.05; meshLayer1.receiveShadow = true; layers.layer1.add(meshLayer1);
+
+        const geoLayer2 = new THREE.BoxGeometry(69.5, 89.5, 1.5); 
+        for(let i = -1; i <= 1; i++) {
+            for(let j = -1; j <= 1; j++) {
+                const meshPanel = new THREE.Mesh(geoLayer2, matWood);
+                meshPanel.position.set(i * 70, j * 90, 0.85); 
+                meshPanel.castShadow = true; meshPanel.receiveShadow = true; layers.layer2.add(meshPanel);
+            }
+        }
+
+        const meshLayer3 = new THREE.Mesh(new THREE.BoxGeometry(210, 270, 1.0), matGrass);
+        meshLayer3.position.z = 2.1; meshLayer3.castShadow = true; meshLayer3.receiveShadow = true; layers.layer3.add(meshLayer3);
+
+        function createExtrudedMesh(shape, depth, zPosition, material) {
+            const mesh = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: false }), material);
+            mesh.position.z = zPosition; mesh.castShadow = true; mesh.receiveShadow = true;
+            return mesh;
+        }
+
+        // --- FIGURA CENTRAL (TAMAÑO RESTAURADO: Alto 68cm, Ancho Max 52cm, Hostia 28cm) ---
+        function drawCentralFigure() {
+            // Hostia: 28cm diametro (radio 14cm). Altura total es 96cm, centrada en Y=0.
+            // Va desde Y = 20 hasta Y = 48. Centro en 34.
+            const shapeHostia = new THREE.Shape();
+            shapeHostia.absarc(0, 34, 14, 0, Math.PI * 2, false);
+            
+            // Cáliz: 68cm altura. Va desde Y = -48 hasta Y = 20.
+            // Ancho máximo restaurado a la proporción real del cartón: 52cm (X va de -26 a 26).
+            const shapeCaliz = new THREE.Shape();
+            shapeCaliz.moveTo(0, -48); // Centro base
+            shapeCaliz.lineTo(14, -48); // Base derecha (ancho base 28cm total)
+            shapeCaliz.quadraticCurveTo(5, -45, 5, -30); // Subida de base al tallo
+            shapeCaliz.lineTo(5, -5); // Tallo recto derecho
+            
+            // Curva "bulbosa" ancha de la copa (llega hasta X=26)
+            shapeCaliz.bezierCurveTo(5, 5, 26, 5, 26, 15);
+            
+            // Labio superior derecho
+            shapeCaliz.quadraticCurveTo(15, 20, 0, 20); 
+            // Labio superior izquierdo
+            shapeCaliz.quadraticCurveTo(-15, 20, -26, 15);
+            
+            // Curva "bulbosa" ancha izquierda (baja desde X=-26)
+            shapeCaliz.bezierCurveTo(-26, 5, -5, 5, -5, -5);
+            
+            // Tallo recto izquierdo
+            shapeCaliz.lineTo(-5, -30);
+            shapeCaliz.quadraticCurveTo(-5, -45, -14, -48); // Bajada del tallo a base izq
+            shapeCaliz.lineTo(0, -48); // Cierre al centro
+
+            layers.layer4.add(createExtrudedMesh(shapeHostia, 0.5, 2.6, matCardboard));
+            layers.layer4.add(createExtrudedMesh(shapeCaliz, 0.5, 2.6, matCardboard));
+            layers.layer5.add(createExtrudedMesh(shapeHostia, 1.0, 3.1, matHostia));
+            layers.layer5.add(createExtrudedMesh(shapeCaliz, 1.0, 3.1, matCaliz));
+        }
+        drawCentralFigure();
+
+        // --- ENTORNO: ACTUALIZADO AL NUEVO TAMAÑO ANCHO ---
+        // Ampliamos el 'agujero' de recorte para que quepa el cáliz ancho de 52cm
+        const holePath = new THREE.Path();
+        holePath.moveTo(-30, -52); // X=30 garantiza margen para la copa de X=26
+        holePath.lineTo(30, -52); 
+        holePath.lineTo(30, 52); 
+        holePath.lineTo(-30, 52); 
+        holePath.lineTo(-30, -52);
+
+        function updateEnvironment(designCode) {
+            while(layers.layer6.children.length > 0) layers.layer6.remove(layers.layer6.children[0]);
+            const zL6 = 2.6; const depthL6 = 0.3; 
+
+            if (designCode === '1') {
+                const shapeBase = new THREE.Shape();
+                shapeBase.moveTo(-105, -135); shapeBase.lineTo(105, -135); shapeBase.lineTo(105, 135); shapeBase.lineTo(-105, 135); shapeBase.lineTo(-105, -135);
+                shapeBase.holes.push(holePath);
+
+                const c1 = new THREE.Path(); c1.absarc(-85, -115, 15, 0, Math.PI*2, false); shapeBase.holes.push(c1);
+                const c2 = new THREE.Path(); c2.absarc(85, -115, 15, 0, Math.PI*2, false); shapeBase.holes.push(c2);
+                const c3 = new THREE.Path(); c3.absarc(-85, 115, 15, 0, Math.PI*2, false); shapeBase.holes.push(c3);
+                const c4 = new THREE.Path(); c4.absarc(85, 115, 0, Math.PI*2, false); shapeBase.holes.push(c4);
+
+                layers.layer6.add(createExtrudedMesh(shapeBase, depthL6, zL6, matArena));
+
+                const sC1 = new THREE.Shape(); sC1.absarc(-85, -115, 15, 0, Math.PI*2, false); layers.layer6.add(createExtrudedMesh(sC1, depthL6, zL6, matBugan));
+                const sC2 = new THREE.Shape(); sC2.absarc(85, -115, 15, 0, Math.PI*2, false); layers.layer6.add(createExtrudedMesh(sC2, depthL6, zL6, matBugan));
+                const sC3 = new THREE.Shape(); sC3.absarc(-85, 115, 15, 0, Math.PI*2, false); layers.layer6.add(createExtrudedMesh(sC3, depthL6, zL6, matBugan));
+                const sC4 = new THREE.Shape(); sC4.absarc(85, 115, 15, 0, Math.PI*2, false); layers.layer6.add(createExtrudedMesh(sC4, depthL6, zL6, matBugan));
+
+                const shapeBorder = new THREE.Shape();
+                shapeBorder.moveTo(-105, -135); shapeBorder.lineTo(105, -135); shapeBorder.lineTo(105, 135); shapeBorder.lineTo(-105, 135); shapeBorder.lineTo(-105, -135);
+                const innerBorder = new THREE.Path();
+                innerBorder.moveTo(-95, -125); innerBorder.lineTo(95, -125); innerBorder.lineTo(95, 125); innerBorder.lineTo(-95, 125); innerBorder.lineTo(-95, -125);
+                shapeBorder.holes.push(innerBorder);
+                layers.layer6.add(createExtrudedMesh(shapeBorder, depthL6+0.1, zL6, matLitre));
+
+            } else if (designCode === '2') {
+                const shapeBase = new THREE.Shape();
+                shapeBase.moveTo(-105, -135); shapeBase.lineTo(105, -135); shapeBase.lineTo(105, 135); shapeBase.lineTo(-105, 135); shapeBase.lineTo(-105, -135);
+                shapeBase.holes.push(holePath);
+
+                const r1 = new THREE.Path(); r1.moveTo(-75, 0); r1.lineTo(-45, 30); r1.lineTo(-75, 60); r1.lineTo(-105, 30); r1.lineTo(-75, 0); shapeBase.holes.push(r1);
+                const r2 = new THREE.Path(); r2.moveTo(75, 0); r2.lineTo(105, 30); r2.lineTo(75, 60); r2.lineTo(45, 30); r2.lineTo(75, 0); shapeBase.holes.push(r2);
+                
+                layers.layer6.add(createExtrudedMesh(shapeBase, depthL6, zL6, matPinocha));
+
+                const shapeMarco = new THREE.Shape();
+                shapeMarco.moveTo(-40, -65); shapeMarco.lineTo(40, -65); shapeMarco.lineTo(40, 65); shapeMarco.lineTo(-40, 65); shapeMarco.lineTo(-40, -65);
+                shapeMarco.holes.push(holePath);
+                layers.layer6.add(createExtrudedMesh(shapeMarco, depthL6+0.2, zL6, matPinas));
+
+                const sR1 = new THREE.Shape(); sR1.moveTo(-75, 0); sR1.lineTo(-45, 30); sR1.lineTo(-75, 60); sR1.lineTo(-105, 30); sR1.lineTo(-75, 0); layers.layer6.add(createExtrudedMesh(sR1, depthL6, zL6, matMusgo));
+                const sR2 = new THREE.Shape(); sR2.moveTo(75, 0); sR2.lineTo(105, 30); sR2.lineTo(75, 60); sR2.lineTo(45, 30); sR2.lineTo(75, 0); layers.layer6.add(createExtrudedMesh(sR2, depthL6, zL6, matMusgo));
+
+            } else if (designCode === '3') {
+                const shapeBase = new THREE.Shape();
+                shapeBase.moveTo(-105, -135); shapeBase.lineTo(105, -135); shapeBase.lineTo(105, 135); shapeBase.lineTo(-105, 135); shapeBase.lineTo(-105, -135);
+                shapeBase.holes.push(holePath);
+                
+                layers.layer6.add(createExtrudedMesh(shapeBase, depthL6, zL6, matArenaNaranja));
+
+                const shapeRayos = new THREE.Shape();
+                shapeRayos.moveTo(-40, 70); shapeRayos.lineTo(-105, 135); shapeRayos.lineTo(-75, 135); shapeRayos.lineTo(-25, 70); shapeRayos.lineTo(-40, 70);
+                shapeRayos.moveTo(40, 70); shapeRayos.lineTo(105, 135); shapeRayos.lineTo(75, 135); shapeRayos.lineTo(25, 70); shapeRayos.lineTo(40, 70);
+                shapeRayos.moveTo(-40, -70); shapeRayos.lineTo(-105, -135); shapeRayos.lineTo(-75, -135); shapeRayos.lineTo(-25, -70); shapeRayos.lineTo(-40, -70);
+                shapeRayos.moveTo(40, -70); shapeRayos.lineTo(105, -135); shapeRayos.lineTo(75, -135); shapeRayos.lineTo(25, -70); shapeRayos.lineTo(40, -70);
+                
+                layers.layer6.add(createExtrudedMesh(shapeRayos, depthL6+0.1, zL6, matCuarzo));
+
+                const shapeHalo = new THREE.Shape();
+                shapeHalo.moveTo(-40, -65); shapeHalo.lineTo(40, -65); shapeHalo.lineTo(40, 65); shapeHalo.lineTo(-40, 65); shapeHalo.lineTo(-40, -65);
+                shapeHalo.holes.push(holePath);
+                layers.layer6.add(createExtrudedMesh(shapeHalo, depthL6+0.2, zL6, matAromo));
+            }
+        }
+        updateEnvironment('1');
+
+        // --- CÁMARAS ---
+        const camPositions = {
+            iso: { pos: new THREE.Vector3(250, 250, 250), target: new THREE.Vector3(0, 0, 0) },
+            top: { pos: new THREE.Vector3(0, 380, 0), target: new THREE.Vector3(0, 0, 0) },
+            front: { pos: new THREE.Vector3(0, 50, 320), target: new THREE.Vector3(0, 0, 0) }
+        };
+        function setCamera(view) {
+            camera.position.copy(camPositions[view].pos); controls.target.copy(camPositions[view].target); controls.update();
+            ['iso', 'top', 'front'].forEach(b => {
+                document.getElementById(`cam-${b}`).className = b === view 
+                    ? "px-3 py-1.5 bg-indigo-500/80 text-white text-xs font-semibold rounded-lg hover:bg-indigo-500 transition-colors" 
+                    : "px-3 py-1.5 bg-transparent text-white/70 hover:text-white text-xs font-medium rounded-lg hover:bg-white/10 transition-colors";
+            });
+        }
+        setCamera('top');
+
+        // --- EVENTOS UI ---
+        for(let i=1; i<=6; i++) {
+            document.getElementById(`layer${i}`).addEventListener('change', (e) => { layers[`layer${i}`].visible = e.target.checked; });
+        }
+
+        document.querySelectorAll('input[name="environment"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                updateEnvironment(e.target.value);
+                ['1','2','3'].forEach(val => {
+                    const lbl = document.getElementById(`lbl-env-${val}`);
+                    const spanTitle = lbl.querySelector('span.text-sm');
+                    const infoBox = lbl.querySelector('div.text-xs');
+                    if(val === e.target.value) {
+                        lbl.className = "flex flex-col p-3 rounded-lg bg-emerald-50 border border-emerald-200 cursor-pointer transition-all relative overflow-hidden";
+                        spanTitle.className = "ml-3 text-sm font-bold text-emerald-900";
+                        infoBox.className = "mt-2 text-xs text-slate-600 ml-7 space-y-1";
+                    } else {
+                        lbl.className = "flex flex-col p-3 rounded-lg hover:bg-slate-50 border border-slate-100 cursor-pointer transition-all relative overflow-hidden";
+                        spanTitle.className = "ml-3 text-sm font-bold text-slate-800";
+                        infoBox.className = "mt-2 text-xs text-slate-500 ml-7 space-y-1";
+                    }
+                });
+            });
+        });
+
+        document.getElementById('cam-iso').addEventListener('click', () => setCamera('iso'));
+        document.getElementById('cam-top').addEventListener('click', () => setCamera('top'));
+        document.getElementById('cam-front').addEventListener('click', () => setCamera('front'));
+
+        function resizeCanvas() {
+            camera.aspect = viewport.clientWidth / viewport.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+        animate();
+    </script>
+</body>
+</html>

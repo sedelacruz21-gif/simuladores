@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RutaLingo - Aprende a Conducir (CONASET 2024)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Nunito (Estilo Duolingo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f4f8;
+            color: #3c3c3c;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        /* Estilo Duolingo premium de bordes 3D */
+        .duo-btn-green {
+            background-color: #58cc02;
+            border-bottom: 5px solid #46a302;
+            transition: all 0.1s ease;
+        }
+        .duo-btn-green:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom: 1px solid #46a302;
+        }
+        .duo-btn-blue {
+            background-color: #1cb0f6;
+            border-bottom: 5px solid #1899d6;
+            transition: all 0.1s ease;
+        }
+        .duo-btn-blue:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom: 1px solid #1899d6;
+        }
+        .duo-btn-gray {
+            background-color: #ffffff;
+            border: 2px solid #e5e5e5;
+            border-bottom: 5px solid #e5e5e5;
+            transition: all 0.1s ease;
+        }
+        .duo-btn-gray:active:not(:disabled) {
+            transform: translateY(2px);
+            border-bottom: 2px solid #e5e5e5;
+        }
+
+        /* Animaciones */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 3s infinite ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Ocultar barra scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-0 sm:p-4">
+
+    <!-- CONTENEDOR TIPO SMARTPHONE -->
+    <div class="w-full max-w-md h-screen sm:h-[820px] bg-white sm:rounded-[32px] sm:shadow-2xl border-none sm:border-8 border-[#3c3c3c] flex flex-col overflow-hidden relative">
+        
+        <!-- TOAST / NOTIFICACIONES PERSONALIZADAS (Reemplaza a alert) -->
+        <div id="toast-notification" class="absolute top-4 left-4 right-4 bg-[#3c3c3c] text-white text-sm font-bold py-3 px-4 rounded-xl shadow-lg transition-all duration-300 transform -translate-y-24 z-50 flex items-center justify-between">
+            <span id="toast-text">¡Mensaje de RutaLingo!</span>
+            <button onclick="hideToast()" class="text-[#afbbca] hover:text-white ml-2">✕</button>
+        </div>
+
+        <!-- DIÁLOGO / MODAL DE COMPARTIR -->
+        <div id="share-modal" class="hidden absolute inset-0 bg-black/50 z-40 flex items-center justify-center p-6 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border-2 border-[#e5e5e5] text-center transform scale-95 transition-transform duration-300">
+                <div class="text-5xl mb-3">🔗</div>
+                <h3 class="text-xl font-extrabold text-[#3c3c3c] mb-2">¡Desafía a un Amigo!</h3>
+                <p class="text-sm text-[#777] mb-4">Copia tu código de progreso y envíaselo por WhatsApp o redes para comparar sus avances y aprender juntos.</p>
+                
+                <div class="bg-[#f0f4f8] border-2 border-[#e5e5e5] rounded-xl p-3 mb-4 flex items-center justify-between">
+                    <span id="share-link-text" class="text-xs font-black text-[#1cb0f6] select-all">rutalingo.cl/invite/user-6473</span>
+                    <button onclick="copyShareLink()" class="bg-[#1cb0f6] text-white font-extrabold text-xs px-3 py-1.5 rounded-lg active:scale-95 transition-transform">Copiar</button>
+                </div>
+                
+                <button onclick="closeShareModal()" class="w-full bg-[#f0f4f8] hover:bg-[#e5e5e5] text-[#3c3c3c] font-black py-3 rounded-xl border-b-4 border-[#ccc] text-sm uppercase">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- BARRA SUPERIOR GLOBAL -->
+        <div class="bg-white border-b-2 border-[#e5e5e5] px-4 py-3 flex items-center justify-between select-none shrink-0 z-10">
+            <!-- Botón Cambiar Usuario -->
+            <button onclick="toggleUser()" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#e5e5e5] hover:bg-[#d8d8d8] text-[#3c3c3c] rounded-full text-xs font-black tracking-wide uppercase transition-all duration-200 transform active:scale-95 shadow-sm">
+                <span id="header-avatar" class="text-sm">🚗</span>
+                <span id="header-username">Diego</span>
+                <span class="text-[8px] bg-[#3c3c3c] text-white px-1.5 py-0.5 rounded-md">CAMBIAR</span>
+            </button>
+
+            <!-- Stats (Racha, XP, Vidas) -->
+            <div class="flex items-center gap-3.5 font-extrabold">
+                <div class="flex items-center gap-1 text-[#ff9600]" title="Racha de días">
+                    <span class="text-lg">🔥</span>
+                    <span id="stat-streak" class="text-sm">5</span>
+                </div>
+                <div class="flex items-center gap-1 text-[#58cc02]" title="Experiencia">
+                    <span class="text-lg">🏆</span>
+                    <span id="stat-xp" class="text-sm">45 XP</span>
+                </div>
+                <div class="flex items-center gap-1 text-[#ff4b4b]" title="Vidas">
+                    <span class="text-lg">❤️</span>
+                    <span id="stat-hearts" class="text-sm">5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL SCROLLABLE -->
+        <div class="flex-1 overflow-y-auto no-scrollbar bg-[#f7f9fa] flex flex-col relative">
+            
+            <!-- ================= SCREEN 1: APRENDIZAJE / MAPA ================= -->
+            <div id="screen-map" class="p-4 flex flex-col gap-6 animate-fadeIn">
+                
+                <!-- Panel del Reto de Amigos -->
+                <div class="bg-white border-2 border-[#e5e5e5] rounded-2xl p-4 shadow-sm relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-black text-[#afbbca] tracking-widest uppercase">👥 RETO DE AMIGOS</h3>
+                        <button onclick="openShareModal()" class="text-xs text-[#1cb0f6] font-extrabold hover:underline flex items-center gap-1">
+                            <span>Compartir</span>
+                            <span>➕</span>
+                        </button>
+                    </div>
+
+                    <!-- Progreso de Diego -->
+                    <div id="social-row-diego" class="flex items-center justify-between py-1.5 border-l-4 border-[#1cb0f6] pl-2.5 mb-2.5 transition-all">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">🚗</span>
+                            <span class="text-xs font-black text-[#3c3c3c]">Diego (Tú)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24 bg-[#e5e5e5] h-3.5 rounded-full overflow-hidden">
+                                <div id="progress-bar-diego" class="bg-[#1cb0f6] h-full rounded-full transition-all duration-700" style="width: 30%;"></div>
+                            </div>
+                            <span id="progress-text-diego" class="text-xs font-extrabold text-[#777]">30%</span>
+                        </div>
+                    </div>
+
+                    <!-- Progreso de Valentina -->
+                    <div id="social-row-valentina" class="flex items-center justify-between py-1.5 border-l-4 border-[#ff9600] pl-2.5 transition-all">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">⚡</span>
+                            <span class="text-xs font-black text-[#3c3c3c]">Valentina</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24 bg-[#e5e5e5] h-3.5 rounded-full overflow-hidden">
+                                <div id="progress-bar-valentina" class="bg-[#ff9600] h-full rounded-full transition-all duration-700" style="width: 60%;"></div>
+                            </div>
+                            <span id="progress-text-valentina" class="text-xs font-extrabold text-[#777]">60%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 pt-2.5 border-t border-[#e5e5e5] text-[11px] text-center text-[#777] font-semibold flex items-center justify-center gap-1">
+                        <span>📢</span>
+                        <span id="social-helper-text">¡Valentina va liderando el camino! Apúrate para ganarle.</span>
+                    </div>
+                </div>
+
+                <!-- Mascotita "Rutín" Guía -->
+                <div class="bg-white border-2 border-[#e5e5e5] rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                    <div class="w-20 h-20 shrink-0">
+                        <svg id="mascot-svg-map" viewBox="0 0 400 320" class="w-full h-full animate-bounce-slow">
+                            <!-- Cuerpo del búho conductor -->
+                            <rect x="110" y="220" width="180" height="70" rx="35" fill="#e5e5e5" />
+                            <circle cx="200" cy="170" r="85" fill="#58cc02" stroke="#46a302" strokeWidth="8"/>
+                            <path d="M140,190 Q200,240 260,190 Q200,160 140,190" fill="#fff" opacity="0.9"/>
+                            <!-- Ojos normales -->
+                            <circle cx="160" cy="140" r="28" fill="white" stroke="#3c3c3c" strokeWidth="4"/>
+                            <circle cx="240" cy="140" r="28" fill="white" stroke="#3c3c3c" strokeWidth="4"/>
+                            <circle cx="165" cy="140" r="10" fill="#3c3c3c"/>
+                            <circle cx="235" cy="140" r="10" fill="#3c3c3c"/>
+                            <!-- Pico -->
+                            <polygon points="200,155 185,175 215,175" fill="#ff9600"/>
+                            <!-- Gorra de piloto -->
+                            <path d="M125,100 C125,70 275,70 275,100 Z" fill="#1cb0f6" stroke="#1899d6" strokeWidth="4"/>
+                            <rect x="115" y="94" width="170" height="12" rx="6" fill="#3c3c3c"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-sm text-[#58cc02]" id="mascot-title">¡RutaLingo Chile Clase B!</h4>
+                        <p class="text-[11px] text-[#777] leading-relaxed mt-1" id="mascot-bubble">¡Hola! Comencemos a estudiar el Libro de Conducción CONASET 2024. Completa las unidades para ganar la copa.</p>
+                    </div>
+                </div>
+
+                <!-- ÁRBOL DE UNIDADES DE CONDUCCIÓN -->
+                <div class="flex flex-col items-center gap-12 py-8 relative">
+                    <!-- Línea de Conexión del Árbol -->
+                    <div class="absolute w-2.5 bg-[#e5e5e5] top-0 bottom-0 left-1/2 -translate-x-1/2 z-0"></div>
+
+                    <!-- UNIDAD 1 (Activa) -->
+                    <div class="flex flex-col items-center z-10">
+                        <button onclick="startLesson(1)" class="w-20 h-20 bg-[#58cc02] hover:bg-[#61e002] text-white rounded-full flex items-center justify-center text-3xl shadow-lg border-b-8 border-[#46a302] active:translate-y-1 active:border-b-[3px] transition-all duration-700">
+                            🚗
+                        </button>
+                        <span class="mt-3 text-xs font-black bg-white border-2 border-[#e5e5e5] px-4 py-1.5 rounded-full text-center shadow-sm">
+                            U1: Siniestros
+                        </span>
+                    </div>
+
+                    <!-- UNIDAD 2 (Activa) -->
+                    <div class="flex flex-col items-center z-10">
+                        <button id="btn-unit-2" onclick="startLesson(2)" class="w-20 h-20 bg-[#1cb0f6] hover:bg-[#32c5ff] text-white rounded-full flex items-center justify-center text-3xl shadow-lg border-b-8 border-[#1899d6] active:translate-y-1 active:border-b-[3px] transition-all duration-700">
+                            ⚖️
+                        </button>
+                        <span class="mt-3 text-xs font-black bg-white border-2 border-[#e5e5e5] px-4 py-1.5 rounded-full text-center shadow-sm">
+                            U2: Leyes Físicas
+                        </span>
+                    </div>
+
+                    <!-- UNIDAD 3 (Bloqueada Inicialmente) -->
+                    <div id="node-unit-3" class="flex flex-col items-center z-10 opacity-50">
+                        <button id="btn-unit-3" onclick="triggerLockedUnit(3)" class="w-20 h-20 bg-[#afbbca] text-white rounded-full flex items-center justify-center text-3xl shadow-lg border-b-8 border-[#8e9cae] cursor-pointer transition-all duration-500">
+                            🔒
+                        </button>
+                        <span class="mt-3 text-xs font-black bg-white border-2 border-[#e5e5e5] px-4 py-1.5 rounded-full text-center shadow-sm">
+                            U3: Convivencia Vial
+                        </span>
+                    </div>
+
+                    <!-- UNIDAD 4 (Bloqueada) -->
+                    <div id="node-unit-4" class="flex flex-col items-center z-10 opacity-50">
+                        <button id="btn-unit-4" onclick="triggerLockedUnit(4)" class="w-20 h-20 bg-[#afbbca] text-white rounded-full flex items-center justify-center text-3xl shadow-lg border-b-8 border-[#8e9cae] cursor-pointer transition-all duration-500">
+                            🔒
+                        </button>
+                        <span class="mt-3 text-xs font-black bg-white border-2 border-[#e5e5e5] px-4 py-1.5 rounded-full text-center shadow-sm">
+                            U4: El Individuo
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= SCREEN 2: JUEGO / LECCIÓN ================= -->
+            <div id="screen-lesson" class="hidden p-4 flex-1 flex flex-col justify-between animate-fadeIn">
+                <!-- Barra superior de lección -->
+                <div class="flex items-center gap-3 w-full mb-4">
+                    <button onclick="exitLesson()" class="text-[#afbbca] hover:text-[#3c3c3c] font-black text-lg p-1">✕</button>
+                    <div class="flex-1 bg-[#e5e5e5] h-3.5 rounded-full overflow-hidden">
+                        <div id="lesson-progress-fill" class="bg-[#58cc02] h-full transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Búho conductor interactivo -->
+                <div class="h-24 w-24 mx-auto mb-2">
+                    <svg id="mascot-svg-lesson" viewBox="0 0 400 320" class="w-full h-full transition-transform duration-300">
+                        <!-- Cuerpo -->
+                        <rect x="110" y="220" width="180" height="70" rx="35" fill="#e5e5e5" />
+                        <circle cx="200" cy="170" r="85" fill="#58cc02" stroke="#46a302" strokeWidth="8"/>
+                        <path d="M140,190 Q200,240 260,190 Q200,160 140,190" fill="#fff" opacity="0.9"/>
+                        <!-- Ojos interactivos (inyectados por JS) -->
+                        <g id="mascot-eyes-group">
+                            <circle cx="160" cy="140" r="28" fill="white" stroke="#3c3c3c" strokeWidth="4"/>
+                            <circle cx="240" cy="140" r="28" fill="white" stroke="#3c3c3c" strokeWidth="4"/>
+                            <circle cx="165" cy="140" r="10" fill="#3c3c3c"/>
+                            <circle cx="235" cy="140" r="10" fill="#3c3c3c"/>
+                        </g>
+                        <!-- Pico -->
+                        <polygon points="200,155 185,175 215,175" fill="#ff9600"/>
+                        <!-- Gorra -->
+                        <path d="M125,100 C125,70 275,70 275,100 Z" fill="#1cb0f6" stroke="#1899d6" strokeWidth="4"/>
+                        <rect x="115" y="94" width="170" height="12" rx="6" fill="#3c3c3c"/>
+                    </svg>
+                </div>
+
+                <!-- Panel de la Pregunta / Desafío -->
+                <div class="flex-1 flex flex-col justify-center my-2">
+                    <h2 id="lesson-question-text" class="text-lg font-extrabold text-[#3c3c3c] text-center mb-6 leading-snug">
+                        ¿Cargando pregunta de conducción...?
+                    </h2>
+
+                    <!-- CONTENEDORES DINÁMICOS PARA DISTINTOS TIPOS -->
+                    
+                    <!-- Formato A: Selección Múltiple -->
+                    <div id="container-multiple" class="space-y-3 hidden">
+                        <!-- Generados con JS -->
+                    </div>
+
+                    <!-- Formato B: Ordenar Frase (Scrambled) -->
+                    <div id="container-scrambled" class="hidden flex flex-col gap-5">
+                        <!-- Zona receptora -->
+                        <div id="scrambled-receptor" class="min-h-[85px] bg-white border-2 border-dashed border-[#ccc] rounded-2xl p-3 flex flex-wrap gap-2 items-center justify-center">
+                            <!-- Palabras puestas aquí -->
+                        </div>
+                        <!-- Pool original desordenado -->
+                        <div id="scrambled-pool" class="flex flex-wrap gap-2 justify-center p-2">
+                            <!-- Palabras a seleccionar -->
+                        </div>
+                    </div>
+
+                    <!-- Formato C: Parejas (Matching) -->
+                    <div id="container-pairs" class="hidden grid grid-cols-2 gap-4">
+                        <div class="space-y-2.5">
+                            <h4 class="text-xs font-black text-center text-[#afbbca] tracking-widest uppercase mb-1">CONCEPTO</h4>
+                            <div id="pairs-left-col" class="space-y-2.5"></div>
+                        </div>
+                        <div class="space-y-2.5">
+                            <h4 class="text-xs font-black text-center text-[#afbbca] tracking-widest uppercase mb-1">DEFINICIÓN</h4>
+                            <div id="pairs-right-col" class="space-y-2.5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de respuesta y feedback -->
+                <div class="mt-auto pt-4">
+                    <!-- Banner de Feedback correcto/incorrecto -->
+                    <div id="feedback-banner" class="hidden p-4 rounded-2xl border-2 mb-4 animate-fadeIn">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span id="feedback-emoji" class="text-lg">🎉</span>
+                            <span id="feedback-title" class="font-black text-sm">¡Buen trabajo!</span>
+                        </div>
+                        <p id="feedback-desc" class="text-xs leading-relaxed font-semibold">Explicación oficial de la CONASET.</p>
+                    </div>
+
+                    <button id="btn-lesson-action" onclick="handleLessonAction()" class="w-full duo-btn-green text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider">
+                        Comprobar
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= SCREEN 3: VICTORIA ================= -->
+            <div id="screen-victory" class="hidden p-6 flex-1 flex flex-col items-center justify-center text-center gap-6 animate-fadeIn">
+                <div class="text-7xl animate-bounce">🏆🏁</div>
+                <h1 class="text-2xl font-extrabold text-[#58cc02]">¡Excelente conducción!</h1>
+                <p class="text-sm text-[#777] max-w-xs leading-relaxed">
+                    Completaste las preguntas clave de estudio basado en el manual de conducción chileno Clase B (Actualizado). ¡Sigue así!
+                </p>
+
+                <div class="grid grid-cols-2 gap-4 w-full max-w-xs">
+                    <div class="bg-white border-2 border-[#e5e5e5] rounded-2xl p-4 flex flex-col items-center shadow-sm">
+                        <span class="text-[10px] text-[#afbbca] font-black uppercase">RECOMPENSA</span>
+                        <span class="text-lg font-black text-[#ff9600]">+25 XP</span>
+                    </div>
+                    <div class="bg-white border-2 border-[#e5e5e5] rounded-2xl p-4 flex flex-col items-center shadow-sm">
+                        <span class="text-[10px] text-[#afbbca] font-black uppercase">PRECISIÓN</span>
+                        <span id="victory-precision" class="text-lg font-black text-[#1cb0f6]">100%</span>
+                    </div>
+                </div>
+
+                <div class="bg-[#58cc02]/10 border-2 border-[#58cc02] rounded-2xl p-3.5 w-full max-w-xs">
+                    <p class="text-xs font-black text-[#58cc02] leading-normal flex items-center justify-center gap-1.5">
+                        <span>📊</span>
+                        <span>¡Tu progreso se sincronizó con el de tu amigo!</span>
+                    </p>
+                </div>
+
+                <button onclick="goToMap()" class="w-full max-w-xs duo-btn-green text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider">
+                    Continuar al Mapa
+                </button>
+            </div>
+
+        </div>
+
+        <!-- BARRA DE NAVEGACIÓN INFERIOR (Oculta durante lecciones) -->
+        <div id="nav-bottom" class="bg-white border-t-2 border-[#e5e5e5] px-6 py-4 flex items-center justify-around shrink-0 select-none z-10">
+            <button onclick="goToMap()" id="nav-btn-learn" class="flex flex-col items-center gap-1 text-[#58cc02] transition-colors duration-200">
+                <span class="text-2xl">🗺️</span>
+                <span class="text-[10px] font-black uppercase tracking-wider">Aprender</span>
+            </button>
+            
+            <button onclick="openShareModal()" id="nav-btn-friends" class="flex flex-col items-center gap-1 text-[#7b8b9a] hover:text-[#3c3c3c] transition-colors duration-200">
+                <span class="text-2xl">👥</span>
+                <span class="text-[10px] font-black uppercase tracking-wider">Amigos</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- AUDIO FAKE & LOGIC CONTROLLER -->
+    <script>
+        // --- BASE DE DATOS DE PREGUNTAS (CONASET CHILE 2024 CLASE B) ---
+        const questionsDB = {
+            1: [ // UNIDAD 1: SINIESTROS DE TRÁNSITO
+                {
+                    type: "multiple",
+                    question: "¿Cuál es el costo aproximado de los siniestros de tránsito en Chile cada año?",
+                    options: [
+                        "Cerca del 2% del PIB (Producto Interno Bruto)",
+                        "Aproximadamente el 5% del PIB",
+                        "Menos del 0.5% del PIB",
+                        "Alrededor del 10% del PIB"
+                    ],
+                    correctIndex: 0,
+                    feedback: "De acuerdo al Libro del Nuevo Conductor, los costos ascienden a cerca del 2% del PIB anualmente."
+                },
+                {
+                    type: "scrambled",
+                    question: "Ordena los conceptos de la CONASET sobre la causa más frecuente de los siniestros:",
+                    words: ["El", "factor", "humano", "causa", "el", "noventa", "porciento", "de", "los", "siniestros"],
+                    correctSentence: "El factor humano causa el noventa porciento de los siniestros",
+                    feedback: "¡Excelente! Más del 90% de los accidentes de tránsito ocurren por conductas y errores del conductor."
+                }
+            ],
+            2: [ // UNIDAD 2: PRINCIPIOS DE LA CONDUCCIÓN & FÍSICA
+                {
+                    type: "multiple",
+                    question: "Si duplicas tu velocidad en un automóvil de 40 km/h a 80 km/h, ¿por cuánto aumenta la distancia de frenado?",
+                    options: [
+                        "Se duplica (x2)",
+                        "Aumenta un 50% extra",
+                        "Se cuadruplica (x4)",
+                        "Se triplica (x3)"
+                    ],
+                    correctIndex: 2,
+                    feedback: "Física vial: La distancia de frenado crece proporcionalmente al cuadrado de la velocidad ($D \\propto v^2$). Al duplicar velocidad ($2^2 = 4$), la distancia de frenado aumenta 4 veces."
+                },
+                {
+                    type: "pairs",
+                    question: "Asocia cada tipo de vía o legislación vial con su respectivo límite legal en Chile:",
+                    left: ["Zona Urbana", "Zona Rural (Pista única)", "Zona Rural (2+ pistas)", "Zona Escuela"],
+                    right: ["50 km/h máximo", "100 km/h máximo", "120 km/h máximo", "30 km/h máximo"],
+                    correctPairs: {
+                        "Zona Urbana": "50 km/h máximo",
+                        "Zona Rural (Pista única)": "100 km/h máximo",
+                        "Zona Rural (2+ pistas)": "120 km/h máximo",
+                        "Zona Escuela": "30 km/h máximo"
+                    },
+                    feedback: "¡Dominas las velocidades! Recuerda respetar las señalizaciones en rutas rurales y zonas urbanas."
+                }
+            ]
+        };
+
+        // --- SISTEMA DE USUARIOS ---
+        const userState = {
+            Diego: {
+                name: "Diego",
+                avatar: "🚗",
+                color: "#1cb0f6",
+                streak: 5,
+                xp: 45,
+                hearts: 5,
+                completedUnits: [0], // Ya pasó inducción
+                unitProgress: { 1: 30, 2: 0, 3: 0, 4: 0 }
+            },
+            Valentina: {
+                name: "Valentina",
+                avatar: "⚡",
+                color: "#ff9600",
+                streak: 12,
+                xp: 110,
+                hearts: 5,
+                completedUnits: [0, 1], // Completó Unidad 1
+                unitProgress: { 1: 100, 2: 60, 3: 0, 4: 0 }
+            }
+        };
+
+        let currentUser = "Diego";
+        let activeUnit = 1;
+        let activeQuestions = [];
+        let questionIndex = 0;
+        let userHearts = 5;
+        let selectedOption = null; // Para multiple choice
+        let scrambledReconstructed = []; // Para scrambled sentence
+        let selectedPairLeft = null; // Para emparejamientos
+        let completedPairs = {}; // Parejas ya consolidadas
+        let isAnswerChecked = false;
+        let errorsInLesson = 0;
+
+        // --- MANEJADORES DE PANTALLAS ---
+        function goToMap() {
+            hideAllScreens();
+            document.getElementById("screen-map").classList.remove("hidden");
+            document.getElementById("nav-bottom").classList.remove("hidden");
+            updateDashboard();
+        }
+
+        function hideAllScreens() {
+            document.getElementById("screen-map").classList.add("hidden");
+            document.getElementById("screen-lesson").classList.add("hidden");
+            document.getElementById("screen-victory").classList.add("hidden");
+        }
+
+        // --- ACTUALIZADOR DE LA INTERFAZ ---
+        function updateDashboard() {
+            const user = userState[currentUser];
+            document.getElementById("header-username").innerText = user.name;
+            document.getElementById("header-avatar").innerText = user.avatar;
+            document.getElementById("stat-streak").innerText = user.streak;
+            document.getElementById("stat-xp").innerText = `${user.xp} XP`;
+            document.getElementById("stat-hearts").innerText = user.hearts;
+
+            // Cambiar look de cabecera según usuario activo
+            const headerBtn = document.querySelector('[onclick="toggleUser()"]');
+            if (currentUser === "Diego") {
+                headerBtn.style.backgroundColor = "#e1f5fe";
+                headerBtn.style.color = "#1282b8";
+            } else {
+                headerBtn.style.backgroundColor = "#fff3e0";
+                headerBtn.style.color = "#e65100";
+            }
+
+            // Sincronizar Progreso Social
+            const pctDiego = calculateOverallProgress("Diego");
+            const pctValentina = calculateOverallProgress("Valentina");
+
+            document.getElementById("progress-bar-diego").style.width = `${pctDiego}%`;
+            document.getElementById("progress-text-diego").innerText = `${pctDiego}%`;
+            document.getElementById("progress-bar-valentina").style.width = `${pctValentina}%`;
+            document.getElementById("progress-text-valentina").innerText = `${pctValentina}%`;
+
+            // Resaltar activamente la fila del usuario en curso
+            if (currentUser === "Diego") {
+                document.getElementById("social-row-diego").classList.add("bg-[#1cb0f6]/10", "rounded-xl");
+                document.getElementById("social-row-valentina").classList.remove("bg-[#ff9600]/10", "rounded-xl");
+            } else {
+                document.getElementById("social-row-diego").classList.remove("bg-[#1cb0f6]/10", "rounded-xl");
+                document.getElementById("social-row-valentina").classList.add("bg-[#ff9600]/10", "rounded-xl");
+            }
+
+            // Mensajes de la mascota
+            if (pctDiego > pctValentina) {
+                document.getElementById("social-helper-text").innerText = "¡Diego va liderando la ruta esta semana! 🏆";
+                document.getElementById("mascot-bubble").innerText = "¡Súper bien! Llevas la delantera en seguridad vial. ¡Sigue así!";
+            } else if (pctDiego < pctValentina) {
+                document.getElementById("social-helper-text").innerText = "¡Valentina te lleva la delantera! Estudia más.";
+                document.getElementById("mascot-bubble").innerText = "¡Valentina va un paso adelante! Termina la Unidad 1 para ganarle.";
+            } else {
+                document.getElementById("social-helper-text").innerText = "¡Están empatados! ¿Quién pasará al siguiente nivel?";
+                document.getElementById("mascot-bubble").innerText = "¡Están codo a codo en el reto de conducción!";
+            }
+
+            // Bloqueos de nodos del árbol basados en el usuario
+            updateUnitNodes(user);
+        }
+
+        function calculateOverallProgress(username) {
+            const up = userState[username].unitProgress;
+            let total = 0;
+            let keys = Object.keys(up);
+            keys.forEach(k => {
+                total += up[k];
+            });
+            return Math.round(total / keys.length);
+        }
+
+        function updateUnitNodes(user) {
+            // Unidad 1 siempre disponible
+            // Unidad 2 requiere que Unidad 1 esté al 100%
+            const u1Progress = user.unitProgress[1];
+            const u2Node = document.getElementById("btn-unit-2");
+            
+            if (u1Progress >= 100) {
+                u2Node.classList.remove("bg-[#afbbca]", "border-[#8e9cae]");
+                u2Node.classList.add("bg-[#1cb0f6]", "border-[#1899d6]");
+                u2Node.innerText = "⚖️";
+            } else {
+                u2Node.classList.add("bg-[#afbbca]", "border-[#8e9cae]");
+                u2Node.classList.remove("bg-[#1cb0f6]", "border-[#1899d6]");
+                u2Node.innerText = "🔒";
+            }
+
+            // Unidad 3 requiere Unidad 2 al 100%
+            const u2Progress = user.unitProgress[2];
+            const u3Node = document.getElementById("node-unit-3");
+            const btnU3 = document.getElementById("btn-unit-3");
+            if (u2Progress >= 100) {
+                u3Node.classList.remove("opacity-50");
+                btnU3.classList.add("bg-[#ff9600]", "border-[#d87f00]");
+                btnU3.classList.remove("bg-[#afbbca]", "border-[#8e9cae]");
+                btnU3.innerText = "🚴";
+            } else {
+                u3Node.classList.add("opacity-50");
+                btnU3.classList.add("bg-[#afbbca]", "border-[#8e9cae]");
+                btnU3.classList.remove("bg-[#ff9600]", "border-[#d87f00]");
+                btnU3.innerText = "🔒";
+            }
+        }
+
+        // --- INTERCAMBIO DE USUARIOS ---
+        function toggleUser() {
+            currentUser = currentUser === "Diego" ? "Valentina" : "Diego";
+            showToast(`Cambiaste al perfil de ${currentUser}`);
+            updateDashboard();
+        }
+
+        // --- SISTEMA DE TOASTS ---
+        function showToast(text) {
+            const toast = document.getElementById("toast-notification");
+            document.getElementById("toast-text").innerText = text;
+            toast.classList.remove("-translate-y-24");
+            toast.classList.add("translate-y-0");
+
+            setTimeout(() => {
+                hideToast();
+            }, 3000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById("toast-notification");
+            toast.classList.remove("translate-y-0");
+            toast.classList.add("-translate-y-24");
+        }
+
+        // --- MODAL DE COMPARTIR ---
+        function openShareModal() {
+            const modal = document.getElementById("share-modal");
+            modal.classList.remove("hidden");
+        }
+
+        function closeShareModal() {
+            const modal = document.getElementById("share-modal");
+            modal.classList.add("hidden");
+        }
+
+        function copyShareLink() {
+            const linkText = document.getElementById("share-link-text").innerText;
+            
+            // Método de copiado sugerido para iframes
+            const dummy = document.createElement("input");
+            document.body.appendChild(dummy);
+            dummy.value = linkText;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showToast("✅ ¡Enlace copiado al portapapeles!");
+        }
+
+        // --- MANEJO DE UNIDADES BLOQUEADAS ---
+        function triggerLockedUnit(unitNum) {
+            const user = userState[currentUser];
+            if (unitNum === 2 && user.unitProgress[1] < 100) {
+                showToast("🔒 Debes completar la Unidad 1 de Siniestros al 100% primero.");
+            } else if (unitNum === 3 && user.unitProgress[2] < 100) {
+                showToast("🔒 Unidad bloqueada. Termina las leyes físicas en la Unidad 2.");
+            } else {
+                showToast("🔒 Termina las unidades previas para abrir este módulo vial.");
+            }
+        }
+
+        // ================= FLUJO DE LECCIONES INTERACTIVAS =================
+
+        function startLesson(unitNum) {
+            activeUnit = unitNum;
+            
+            // Validar bloqueos antes de entrar
+            const user = userState[currentUser];
+            if (unitNum === 2 && user.unitProgress[1] < 100) {
+                triggerLockedUnit(2);
+                return;
+            }
+
+            activeQuestions = questionsDB[unitNum] || [];
+            questionIndex = 0;
+            userHearts = user.hearts;
+            errorsInLesson = 0;
+            isAnswerChecked = false;
+
+            if (userHearts <= 0) {
+                showToast("❌ No tienes corazones. Cambia de usuario o espera una recarga.");
+                return;
+            }
+
+            hideAllScreens();
+            document.getElementById("screen-lesson").classList.remove("hidden");
+            document.getElementById("nav-bottom").classList.add("hidden");
+
+            loadQuestion();
+        }
+
+        function exitLesson() {
+            goToMap();
+        }
+
+        function loadQuestion() {
+            isAnswerChecked = false;
+            selectedOption = null;
+            scrambledReconstructed = [];
+            selectedPairLeft = null;
+            completedPairs = {};
+
+            // Ocultar banner de feedback
+            const banner = document.getElementById("feedback-banner");
+            banner.classList.add("hidden");
+
+            // Actualizar barra de progreso interno de la lección
+            const pct = (questionIndex / activeQuestions.length) * 100;
+            document.getElementById("lesson-progress-fill").style.width = `${pct}%`;
+
+            // Actualizar corazones arriba
+            document.getElementById("stat-hearts").innerText = userHearts;
+
+            // Renderizar mascota en modo neutral
+            setMascotExpression("neutral");
+
+            // Configurar la pregunta actual
+            const q = activeQuestions[questionIndex];
+            document.getElementById("lesson-question-text").innerText = q.question;
+
+            // Resetear contenedores de tipo
+            document.getElementById("container-multiple").classList.add("hidden");
+            document.getElementById("container-scrambled").classList.add("hidden");
+            document.getElementById("container-pairs").classList.add("hidden");
+
+            document.getElementById("btn-lesson-action").innerText = "Comprobar";
+            document.getElementById("btn-lesson-action").className = "w-full duo-btn-gray text-[#afbbca] font-black py-4 rounded-xl text-sm uppercase tracking-wider cursor-not-allowed";
+
+            if (q.type === "multiple") {
+                setupMultipleChoice(q);
+            } else if (q.type === "scrambled") {
+                setupScrambled(q);
+            } else if (q.type === "pairs") {
+                setupPairs(q);
+            }
+        }
+
+        // Expresiones de "Rutín" el búho
+        function setMascotExpression(state) {
+            const eyesGroup = document.getElementById("mascot-eyes-group");
+            const svg = document.getElementById("mascot-svg-lesson");
+            
+            if (state === "happy") {
+                svg.classList.add("scale-110");
+                eyesGroup.innerHTML = `
+                    <path d="M135,145 Q160,115 185,145" fill="none" stroke="#3c3c3c" stroke-width="8" stroke-linecap="round"/>
+                    <path d="M215,145 Q240,115 265,145" fill="none" stroke="#3c3c3c" stroke-width="8" stroke-linecap="round"/>
+                `;
+            } else if (state === "sad") {
+                svg.classList.add("animate-shake");
+                eyesGroup.innerHTML = `
+                    <circle cx="160" cy="140" r="28" fill="white" stroke="#3c3c3c" stroke-width="4"/>
+                    <circle cx="240" cy="140" r="28" fill="white" stroke="#3c3c3c" stroke-width="4"/>
+                    <path d="M145,130 L175,140" stroke="#3c3c3c" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M255,130 L225,140" stroke="#3c3c3c" stroke-width="6" stroke-linecap="round"/>
+                    <circle cx="160" cy="148" r="7" fill="#3c3c3c"/>
+                    <circle cx="240" cy="148" r="7" fill="#3c3c3c"/>
+                `;
+                setTimeout(() => {
+                    svg.classList.remove("animate-shake");
+                }, 500);
+            } else {
+                svg.classList.remove("scale-110");
+                eyesGroup.innerHTML = `
+                    <circle cx="160" cy="140" r="28" fill="white" stroke="#3c3c3c" stroke-width="4"/>
+                    <circle cx="240" cy="140" r="28" fill="white" stroke="#3c3c3c" stroke-width="4"/>
+                    <circle cx="165" cy="140" r="10" fill="#3c3c3c"/>
+                    <circle cx="235" cy="140" r="10" fill="#3c3c3c"/>
+                    <circle cx="170" cy="135" r="4" fill="white"/>
+                    <circle cx="240" cy="135" r="4" fill="white"/>
+                `;
+            }
+        }
+
+        // SETUP PREGUNTA TIPO A: OPCIÓN MÚLTIPLE
+        function setupMultipleChoice(q) {
+            const container = document.getElementById("container-multiple");
+            container.classList.remove("hidden");
+            container.innerHTML = "";
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left p-4 rounded-2xl border-2 border-b-[5px] border-[#e5e5e5] bg-white text-sm font-extrabold text-[#3c3c3c] flex items-center gap-3 active:scale-[0.99] transition-all";
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-lg bg-[#f0f4f8] border-2 border-[#e5e5e5] text-xs font-black text-[#afbbca] flex items-center justify-center">${String.fromCharCode(65 + idx)}</span>
+                    <span class="flex-1">${opt}</span>
+                `;
+                btn.onclick = () => selectMultipleOption(idx, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectMultipleOption(idx, element) {
+            if (isAnswerChecked) return;
+            selectedOption = idx;
+
+            // Limpiar estilos de todos
+            const children = document.getElementById("container-multiple").children;
+            for (let i = 0; i < children.length; i++) {
+                children[i].className = "w-full text-left p-4 rounded-2xl border-2 border-b-[5px] border-[#e5e5e5] bg-white text-sm font-extrabold text-[#3c3c3c] flex items-center gap-3 active:scale-[0.99] transition-all";
+            }
+
+            // Seleccionar el actual
+            element.className = "w-full text-left p-4 rounded-2xl border-2 border-b-[5px] border-[#1cb0f6] bg-[#e1f5fe] text-sm font-extrabold text-[#1cb0f6] flex items-center gap-3 active:scale-[0.99] transition-all";
+            
+            // Habilitar botón de comprobar
+            const checkBtn = document.getElementById("btn-lesson-action");
+            checkBtn.className = "w-full duo-btn-green text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider";
+        }
+
+        // SETUP PREGUNTA TIPO B: ORDENAR FRASES
+        function setupScrambled(q) {
+            const container = document.getElementById("container-scrambled");
+            container.classList.remove("hidden");
+
+            const receptor = document.getElementById("scrambled-receptor");
+            const pool = document.getElementById("scrambled-pool");
+
+            receptor.innerHTML = "";
+            pool.innerHTML = "";
+
+            // Mezclar palabras para el pool
+            const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((w) => {
+                const wordBtn = document.createElement("button");
+                wordBtn.className = "bg-white border-2 border-b-[4px] border-[#e5e5e5] text-xs font-black px-3.5 py-2 rounded-xl text-[#3c3c3c] transition-all hover:scale-105 active:scale-95";
+                wordBtn.innerText = w;
+                wordBtn.onclick = () => moveWord(wordBtn, "pool");
+                pool.appendChild(wordBtn);
+            });
+        }
+
+        function moveWord(btn, source) {
+            if (isAnswerChecked) return;
+
+            const receptor = document.getElementById("scrambled-receptor");
+            const pool = document.getElementById("scrambled-pool");
+
+            if (source === "pool") {
+                // Al receptor
+                pool.removeChild(btn);
+                btn.onclick = () => moveWord(btn, "receptor");
+                receptor.appendChild(btn);
+                scrambledReconstructed.push(btn.innerText);
+            } else {
+                // Al pool
+                receptor.removeChild(btn);
+                btn.onclick = () => moveWord(btn, "pool");
+                pool.appendChild(btn);
+                scrambledReconstructed = scrambledReconstructed.filter(w => w !== btn.innerText);
+            }
+
+            // Activar botón de chequear si hay palabras puestas
+            const checkBtn = document.getElementById("btn-lesson-action");
+            if (receptor.children.length > 0) {
+                checkBtn.className = "w-full duo-btn-green text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider";
+            } else {
+                checkBtn.className = "w-full duo-btn-gray text-[#afbbca] font-black py-4 rounded-xl text-sm uppercase tracking-wider cursor-not-allowed";
+            }
+        }
+
+        // SETUP PREGUNTA TIPO C: EMPAREJAMIENTO (MATCHING)
+        function setupPairs(q) {
+            const container = document.getElementById("container-pairs");
+            container.classList.remove("hidden");
+
+            const leftCol = document.getElementById("pairs-left-col");
+            const rightCol = document.getElementById("pairs-right-col");
+
+            leftCol.innerHTML = "";
+            rightCol.innerHTML = "";
+
+            // Desordenar las columnas de forma independiente
+            const shuffledLeft = [...q.left].sort(() => Math.random() - 0.5);
+            const shuffledRight = [...q.right].sort(() => Math.random() - 0.5);
+
+            shuffledLeft.forEach((item) => {
+                const btn = document.createElement("button");
+                btn.className = "w-full p-3.5 rounded-xl border-2 border-b-[4px] border-[#e5e5e5] bg-white text-xs font-extrabold text-center text-[#3c3c3c] transition-all";
+                btn.innerText = item;
+                btn.onclick = () => selectPairItem(item, "left", btn);
+                leftCol.appendChild(btn);
+            });
+
+            shuffledRight.forEach((item) => {
+                const btn = document.createElement("button");
+                btn.className = "w-full p-3.5 rounded-xl border-2 border-b-[4px] border-[#e5e5e5] bg-white text-xs font-extrabold text-center text-[#3c3c3c] transition-all";
+                btn.innerText = item;
+                btn.onclick = () => selectPairItem(item, "right", btn);
+                rightCol.appendChild(btn);
+            });
+        }
+
+        function selectPairItem(item, side, btn) {
+            if (isAnswerChecked) return;
+
+            if (side === "left") {
+                // Seleccionar concepto
+                selectedPairLeft = { item, element: btn };
+                // Reiniciar otros de la columna izquierda
+                const leftChildren = document.getElementById("pairs-left-col").children;
+                for (let i = 0; i < leftChildren.length; i++) {
+                    if (!leftChildren[i].disabled) {
+                        leftChildren[i].className = "w-full p-3.5 rounded-xl border-2 border-b-[4px] border-[#e5e5e5] bg-white text-xs font-extrabold text-center text-[#3c3c3c] transition-all";
+                    }
+                }
+                btn.className = "w-full p-3.5 rounded-xl border-2 border-b-[4px] border-[#1cb0f6] bg-[#e1f5fe] text-xs font-black text-center text-[#1cb0f6] transition-all";
+            } else {
+                // Seleccionar definición (requiere que haya un concepto seleccionado)
+                if (!selectedPairLeft) {
+                    showToast("ℹ️ Selecciona un concepto de la columna izquierda primero.");
+                    return;
+                }
+
+                const q = activeQuestions[questionIndex];
+                const correctDefinition = q.correctPairs[selectedPairLeft.item];
+
+                if (correctDefinition === item) {
+                    // Correcto: Consolidar pareja
+                    completedPairs[selectedPairLeft.item] = item;
+                    
+                    // Desactivar ambos botones visualmente
+                    selectedPairLeft.element.disabled = true;
+                    selectedPairLeft.element.className = "w-full p-3.5 rounded-xl border-2 border-[#58cc02] bg-[#58cc02]/10 text-xs font-extrabold text-center text-[#58cc02] opacity-50";
+                    
+                    btn.disabled = true;
+                    btn.className = "w-full p-3.5 rounded-xl border-2 border-[#58cc02] bg-[#58cc02]/10 text-xs font-extrabold text-center text-[#58cc02] opacity-50";
+
+                    selectedPairLeft = null;
+
+                    // Si se completaron todas las parejas, habilitar Comprobar
+                    if (Object.keys(completedPairs).length === q.left.length) {
+                        const checkBtn = document.getElementById("btn-lesson-action");
+                        checkBtn.className = "w-full duo-btn-green text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider";
+                    }
+                } else {
+                    // Incorrecto
+                    showToast("❌ No corresponde la asociación. Intenta de nuevo.");
+                    // Penalización de corazón
+                    userHearts = Math.max(0, userHearts - 1);
+                    document.getElementById("stat-hearts").innerText = userHearts;
+                    setMascotExpression("sad");
+
+                    if (userHearts <= 0) {
+                        showToast("💔 Te has quedado sin corazones. Terminando lección.");
+                        setTimeout(() => exitLesson(), 2000);
+                        return;
+                    }
+
+                    // Resetear selección
+                    selectedPairLeft.element.className = "w-full p-3.5 rounded-xl border-2 border-b-[4px] border-[#e5e5e5] bg-white text-xs font-extrabold text-center text-[#3c3c3c] transition-all";
+                    selectedPairLeft = null;
+                }
+            }
+        }
+
+        // ================= COMPROBACIÓN DE RESPUESTAS =================
+
+        function handleLessonAction() {
+            const q = activeQuestions[questionIndex];
+            const checkBtn = document.getElementById("btn-lesson-action");
+
+            if (!isAnswerChecked) {
+                // --- COMPROBAR RESPUESTA ---
+                let correct = false;
+
+                if (q.type === "multiple") {
+                    correct = selectedOption === q.correctIndex;
+                    // Marcar opciones
+                    const container = document.getElementById("container-multiple");
+                    for (let i = 0; i < container.children.length; i++) {
+                        const child = container.children[i];
+                        if (i === q.correctIndex) {
+                            child.className = "w-full text-left p-4 rounded-2xl border-2 border-[#58cc02] bg-[#58cc02]/15 text-[#46a302] text-sm font-extrabold flex items-center gap-3";
+                        } else if (i === selectedOption) {
+                            child.className = "w-full text-left p-4 rounded-2xl border-2 border-[#ff4b4b] bg-[#ff4b4b]/15 text-[#ff4b4b] text-sm font-extrabold flex items-center gap-3";
+                        }
+                    }
+                } else if (q.type === "scrambled") {
+                    // Almacenar el orden de palabras reconstruido por nodos
+                    const receptorWords = [];
+                    const nodes = document.getElementById("scrambled-receptor").children;
+                    for (let i = 0; i < nodes.length; i++) {
+                        receptorWords.push(nodes[i].innerText);
+                    }
+                    const sentence = receptorWords.join(" ");
+                    correct = sentence === q.correctSentence;
+                } else if (q.type === "pairs") {
+                    correct = Object.keys(completedPairs).length === q.left.length;
+                }
+
+                // Desplegar Banner de Feedback
+                const banner = document.getElementById("feedback-banner");
+                banner.classList.remove("hidden");
+
+                if (correct) {
+                    setMascotExpression("happy");
+                    banner.className = "p-4 rounded-2xl border-2 border-[#58cc02] bg-[#eefae6] text-[#46a302] mb-4 animate-scaleUp";
+                    document.getElementById("feedback-emoji").innerText = "🎉";
+                    document.getElementById("feedback-title").innerText = "¡Excelente respuesta!";
+                    document.getElementById("feedback-desc").innerText = q.feedback;
+                } else {
+                    setMascotExpression("sad");
+                    errorsInLesson++;
+                    banner.className = "p-4 rounded-2xl border-2 border-[#ff4b4b] bg-[#ffeaee] text-[#ff4b4b] mb-4 animate-scaleUp";
+                    document.getElementById("feedback-emoji").innerText = "⚠️";
+                    document.getElementById("feedback-title").innerText = "Norma del libro de la CONASET:";
+                    document.getElementById("feedback-desc").innerText = q.feedback;
+
+                    // Restar corazón
+                    userHearts = Math.max(0, userHearts - 1);
+                    document.getElementById("stat-hearts").innerText = userHearts;
+
+                    if (userHearts <= 0) {
+                        showToast("💔 Te has quedado sin corazones en la ruta.");
+                        setTimeout(() => exitLesson(), 3000);
+                        return;
+                    }
+                }
+
+                isAnswerChecked = true;
+                checkBtn.innerText = "Continuar";
+                checkBtn.className = "w-full duo-btn-blue text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider";
+            } else {
+                // --- CONTINUAR AL SIGUIENTE PASO ---
+                questionIndex++;
+                if (questionIndex < activeQuestions.length) {
+                    loadQuestion();
+                } else {
+                    // Finalización exitosa de la lección
+                    completeLesson();
+                }
+            }
+        }
+
+        function completeLesson() {
+            // Actualizar datos del usuario actual
+            const user = userState[currentUser];
+            user.xp += 25;
+            user.hearts = userHearts;
+            
+            // Subir racha si no hubo muchos errores
+            if (errorsInLesson === 0) {
+                user.streak += 1;
+            }
+
+            // Marcar unidad completa (progreso)
+            user.unitProgress[activeUnit] = 100;
+
+            // Calcular precisión
+            const precision = Math.round(((activeQuestions.length - errorsInLesson) / activeQuestions.length) * 100);
+            document.getElementById("victory-precision").innerText = `${precision}%`;
+
+            // Cambiar pantalla a Victoria
+            hideAllScreens();
+            document.getElementById("screen-victory").classList.remove("hidden");
+            document.getElementById("nav-bottom").classList.add("hidden");
+        }
+
+        // Inicializador en carga de la página
+        window.onload = function() {
+            goToMap();
+        }
+    </script>
+</body>
+</html>

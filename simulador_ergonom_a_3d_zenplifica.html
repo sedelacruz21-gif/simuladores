@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Ergonómico 3D Profesional - Zenplifica</title>
+    <!-- Tailwind CSS para Estilos Modernos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js para la Simulación 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls para rotar la cámara de forma intuitiva -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #FDFBF7; /* Crema Zenplifica */
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FDFBF7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #7D9D85;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-neutral-800 min-h-screen flex flex-col select-none">
+
+    <!-- CABECERA PRINCIPAL -->
+    <header class="bg-[#FDFBF7] border-b border-neutral-200/60 px-6 py-4 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="w-8 h-8 rounded-full bg-[#7D9D85] flex items-center justify-center text-white font-bold text-sm">Z</span>
+                <div>
+                    <span class="font-bold tracking-wider text-[10px] text-[#7D9D85] uppercase">Zenplifica Labs</span>
+                    <h1 class="text-lg font-bold text-neutral-900 -mt-1">Simulador de Postura 3D Realista</h1>
+                </div>
+            </div>
+            <div class="bg-[#7D9D85]/10 text-[#7D9D85] text-xs font-bold px-3 py-1.5 rounded-full border border-[#7D9D85]/20 animate-pulse">
+                Herramienta Interactiva
+            </div>
+        </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL -->
+    <main class="max-w-7xl mx-auto w-full p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+        
+        <!-- PANEL DE CONTROL (IZQUIERDA) -->
+        <section class="lg:col-span-4 bg-white p-5 lg:p-6 rounded-2xl border border-neutral-200/70 shadow-md flex flex-col justify-between space-y-6 order-2 lg:order-1 transition-all">
+            <div class="space-y-6">
+                <!-- PASO 1: BIOTIPO -->
+                <div class="p-4 rounded-xl border border-neutral-100 bg-neutral-50/50 hover:shadow-sm transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-[#7D9D85] uppercase tracking-wider">Paso 1: Estatura Física</span>
+                        <span class="text-[9px] bg-[#7D9D85]/10 text-[#7D9D85] px-2 py-0.5 rounded font-bold uppercase tracking-wide"><i class="fa-solid fa-hand-pointer mr-1"></i> Interactivo</span>
+                    </div>
+                    <h2 class="text-xl font-bold mt-0.5 text-neutral-900">Selecciona tu Perfil</h2>
+                    <p class="text-neutral-500 text-xs mt-1">Elige un biotipo para adaptar el mobiliario y apoyos.</p>
+                    
+                    <div class="grid grid-cols-3 gap-2 mt-3">
+                        <button onclick="setBiotipo('small')" id="btn-small" class="biotipo-btn p-3 rounded-xl border-2 border-neutral-200 text-center hover:border-[#7D9D85] hover:bg-neutral-50 active:scale-95 transition-all bg-[#FDFBF7] cursor-pointer shadow-sm">
+                            <span class="block text-2xl mb-1">🧘‍♀️</span>
+                            <span class="block text-xs font-bold">Pequeño</span>
+                            <span class="block text-[10px] text-neutral-500">~1.55 m</span>
+                        </button>
+                        <button onclick="setBiotipo('medium')" id="btn-medium" class="biotipo-btn p-3 rounded-xl border-2 border-[#7D9D85] text-center active:scale-95 transition-all bg-[#7D9D85]/10 text-neutral-900 cursor-pointer shadow-sm">
+                            <span class="block text-2xl mb-1">🧍‍♂️</span>
+                            <span class="block text-xs font-bold">Mediano</span>
+                            <span class="block text-[10px] text-neutral-500">~1.75 m</span>
+                        </button>
+                        <button onclick="setBiotipo('large')" id="btn-large" class="biotipo-btn p-3 rounded-xl border-2 border-neutral-200 text-center hover:border-[#7D9D85] hover:bg-neutral-50 active:scale-95 transition-all bg-[#FDFBF7] cursor-pointer shadow-sm">
+                            <span class="block text-2xl mb-1">🧗‍♂️</span>
+                            <span class="block text-xs font-bold">Grande</span>
+                            <span class="block text-[10px] text-neutral-500">~1.90 m</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PASO 2: POSTURA -->
+                <div class="p-4 rounded-xl border border-neutral-100 bg-neutral-50/50 hover:shadow-sm transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-[#7D9D85] uppercase tracking-wider">Paso 2: Modo de Postura</span>
+                        <span class="text-[9px] bg-[#7D9D85]/10 text-[#7D9D85] px-2 py-0.5 rounded font-bold uppercase tracking-wide"><i class="fa-solid fa-hand-pointer mr-1"></i> Interactivo</span>
+                    </div>
+                    <h2 class="text-xl font-bold mt-0.5 text-neutral-900">Compara el Estrés Físico</h2>
+                    
+                    <div class="bg-neutral-100 p-1.5 rounded-xl grid grid-cols-2 gap-1.5 mt-3">
+                        <button onclick="setPostura(false)" id="btn-bad" class="py-2.5 rounded-lg text-xs font-bold transition-all text-neutral-600 hover:text-neutral-900 active:scale-95 cursor-pointer">
+                            ⚠️ Incorrecta (Laptop)
+                        </button>
+                        <button onclick="setPostura(true)" id="btn-good" class="py-2.5 rounded-lg text-xs font-bold transition-all bg-white text-[#7D9D85] shadow-sm active:scale-95 cursor-pointer">
+                            🌿 Postura Zen (90°)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PASO 3: HACKS DE OPTIMIZACIÓN -->
+                <div class="p-4 rounded-xl border border-neutral-100 bg-neutral-50/50 hover:shadow-sm transition-all">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-[#7D9D85] uppercase tracking-wider">Paso 3: Accesorios y Ajustes</span>
+                        <span class="text-[9px] bg-[#7D9D85]/10 text-[#7D9D85] px-2 py-0.5 rounded font-bold uppercase tracking-wide"><i class="fa-solid fa-hand-pointer mr-1"></i> Interactivo</span>
+                    </div>
+                    <h2 class="text-xl font-bold mt-0.5 text-neutral-900">Equipamiento Activo</h2>
+                    <p class="text-neutral-500 text-xs mt-1">Activa o desactiva accesorios para ver el cambio inmediato.</p>
+                    
+                    <div class="space-y-3 mt-3">
+                        <!-- Soporte Monitor -->
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-neutral-200/50 hover:border-[#7D9D85]/40 hover:bg-neutral-50 transition-all shadow-sm">
+                            <div>
+                                <h4 class="font-bold text-xs text-neutral-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-chevron-up text-[#7D9D85]"></i> Soporte de Monitor
+                                </h4>
+                                <p class="text-[10px] text-neutral-500">Eleva la pantalla a tu línea visual.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-monitor" class="sr-only peer" onchange="toggleMonitorStand()">
+                                <div class="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:width-4 after:transition-all peer-checked:bg-[#7D9D85]"></div>
+                            </label>
+                        </div>
+
+                        <!-- Reposapiés -->
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-neutral-200/50 hover:border-[#7D9D85]/40 hover:bg-neutral-50 transition-all shadow-sm">
+                            <div>
+                                <h4 class="font-bold text-xs text-neutral-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shoe-prints text-[#7D9D85]"></i> Reposapiés (10 cm)
+                                </h4>
+                                <p class="text-[10px] text-neutral-500">Elimina presión detrás del muslo.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-footrest" class="sr-only peer" onchange="toggleFootrest()">
+                                <div class="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:width-4 after:transition-all peer-checked:bg-[#7D9D85]"></div>
+                            </label>
+                        </div>
+
+                        <!-- Soporte Lumbar -->
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-neutral-200/50 hover:border-[#7D9D85]/40 hover:bg-neutral-50 transition-all shadow-sm">
+                            <div>
+                                <h4 class="font-bold text-xs text-neutral-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-couch text-[#7D9D85]"></i> Cojín Lumbar
+                                </h4>
+                                <p class="text-[10px] text-neutral-500">Mantiene la curva natural lumbar.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-lumbar" class="sr-only peer" onchange="toggleLumbar()">
+                                <div class="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:width-4 after:transition-all peer-checked:bg-[#7D9D85]"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIAGNÓSTICO CIENTÍFICO DINÁMICO -->
+            <div class="bg-[#FDFBF7] p-4 rounded-xl border border-[#7D9D85]/20 mt-4 shadow-inner">
+                <h3 class="font-bold text-xs text-[#7D9D85] flex items-center gap-1.5 mb-1.5">
+                    <span id="diagnostic-icon">🌿</span> ANÁLISIS DEL CURADOR:
+                </h3>
+                <p id="diagnostic-text" class="text-[11px] text-neutral-600 leading-relaxed">
+                    Iniciando análisis biomecánico...
+                </p>
+            </div>
+        </section>
+
+        <!-- VISUALIZADOR 3D INTERACTIVO (DERECHA) -->
+        <section class="lg:col-span-8 flex flex-col space-y-4 order-1 lg:order-2">
+            
+            <!-- LIENZO 3D -->
+            <div class="relative bg-[#F4F2EF] rounded-2xl border border-neutral-200/50 overflow-hidden shadow-md flex-grow min-h-[440px] lg:min-h-[540px]">
+                
+                <!-- GESTOS DE AYUDA -->
+                <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md px-3.5 py-1.8 rounded-full text-[10px] text-neutral-600 font-medium flex items-center space-x-1.5 border border-neutral-200/50 shadow-sm">
+                    <i class="fa-solid fa-arrows-spin text-[#7D9D85] animate-spin-slow"></i>
+                    <span>Arrastra para rotar o pellizca para hacer zoom</span>
+                </div>
+
+                <!-- MÉTRICAS DE ESTRÉS BIOMÉTRICO (PINS FLOTANTES) -->
+                <div class="absolute top-4 right-4 z-10 flex flex-col space-y-2 max-w-[220px]">
+                    
+                    <!-- Presión Cervical -->
+                    <div class="bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-neutral-200/40 flex items-center space-x-3">
+                        <div id="status-dot-cervical" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                        <div>
+                            <span class="block text-[8px] uppercase tracking-wider text-neutral-400 font-bold">Carga Cervical</span>
+                            <span id="txt-cervical-load" class="block text-xs font-bold text-neutral-800">Cargando...</span>
+                        </div>
+                    </div>
+
+                    <!-- Ángulo de Rodilla -->
+                    <div class="bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-neutral-200/40 flex items-center space-x-3">
+                        <div id="status-dot-knee" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                        <div>
+                            <span class="block text-[8px] uppercase tracking-wider text-neutral-400 font-bold">Ángulo de Rodilla</span>
+                            <span id="txt-knee-angle" class="block text-xs font-bold text-neutral-800">Cargando...</span>
+                        </div>
+                    </div>
+
+                    <!-- Ángulo de Codo -->
+                    <div class="bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-neutral-200/40 flex items-center space-x-3">
+                        <div id="status-dot-elbow" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                        <div>
+                            <span class="block text-[8px] uppercase tracking-wider text-neutral-400 font-bold">Ángulo del Codo</span>
+                            <span id="txt-elbow-angle" class="block text-xs font-bold text-neutral-800">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CANVAS DE THREE.JS -->
+                <div id="three-canvas-container" class="w-full h-full absolute inset-0"></div>
+            </div>
+
+            <!-- TABLERO METRICAS TÉCNICAS (PIE DE SIMULACIÓN) -->
+            <div class="bg-white p-4 rounded-xl border border-neutral-200/70 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="flex items-start space-x-2.5">
+                    <div class="p-2 rounded-lg bg-[#7D9D85]/10 text-[#7D9D85]">
+                        <i class="fa-solid fa-ruler-vertical text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-neutral-900">Medidas Antropométricas</h4>
+                        <p id="info-heights" class="text-[10px] text-neutral-500 leading-snug">Calculando alturas reales del sujeto...</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-2.5">
+                    <div class="p-2 rounded-lg bg-[#7D9D85]/10 text-[#7D9D85]">
+                        <i class="fa-solid fa-chair text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-neutral-900">Estado de Muslos y Pelvis</h4>
+                        <p id="info-circulation" class="text-[10px] text-neutral-500 leading-snug">Evaluando alineación circulatoria...</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-2.5">
+                    <div class="p-2 rounded-lg bg-[#7D9D85]/10 text-[#7D9D85]">
+                        <i class="fa-solid fa-eye text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-neutral-900">Eje Visual Láser</h4>
+                        <p class="text-[10px] text-neutral-500 leading-snug">La proyección láser ilustra el vector de la mirada. El haz verde representa un cuello completamente libre de estrés.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-neutral-900 text-neutral-400 py-4 text-center text-[10px] mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>© 2026 Zenplifica. Modelado biomecánico computacional en base a guías de ergonomía ISO 9241, OMS y OPS.</p>
+        </div>
+    </footer>
+
+    <!-- LOGICA DE COMPORTAMIENTO 3D -->
+    <script>
+        // CONFIGURACIÓN DE PARÁMETROS REALISTAS (1 Unidad = 1 Metro)
+        const ALTURA_MESA = 0.74; // Altura estándar mundial
+
+        const BIOTIPOS = {
+            small: {
+                nombre: "Estatura Pequeña",
+                alturaSujeto: 1.55,
+                torsoHeight: 0.45,
+                neckHeight: 0.06,
+                headRadius: 0.09,
+                femurLength: 0.36,
+                tibiaLength: 0.36,
+                upperArmLength: 0.24,
+                forearmLength: 0.21,
+                
+                // Alturas de Silla
+                chairHeightIdeal: 0.46, // Elevada para que los codos alcancen la mesa a 74cm
+                chairHeightBad: 0.38,   // Demasiado baja para la mesa
+                
+                badPostureText: "Para una estatura de 1.55m, usar la laptop directamente en mesa de 74cm te obliga a encoger los hombros y forzar el antebrazo. Tus pies quedan colgando e inestables cortando la circulación femoral.",
+                goodPostureText: "¡Postura Zen! Elevando la silla a 46cm, tus codos quedan paralelos a la mesa. Al usar el reposapiés de 10cm, las rodillas se mantienen en un ángulo ideal de 95° apoyando firmemente.",
+                
+                cervicalBad: "18 kg (Flexión de 45°)",
+                cervicalGood: "4.5 kg (Postura Neutra)"
+            },
+            medium: {
+                nombre: "Estatura Mediana",
+                alturaSujeto: 1.75,
+                torsoHeight: 0.52,
+                neckHeight: 0.075,
+                headRadius: 0.10,
+                femurLength: 0.42,
+                tibiaLength: 0.42,
+                upperArmLength: 0.28,
+                forearmLength: 0.25,
+                
+                chairHeightIdeal: 0.42,
+                chairHeightBad: 0.45, // Demasiado alta
+                
+                badPostureText: "En estatura mediana (1.75m), la laptop sobre la mesa plana te obliga a bajar la mirada un 30% constante. Al encorvarte, la pelvis rota hacia atrás y la espalda pierde su apoyo lumbar recto.",
+                goodPostureText: "Con el monitor elevado 15cm y la pelvis atrás pegada al respaldo, tu espalda conserva la lordosis lumbar natural. Los pies tocan completamente planos el suelo.",
+                
+                cervicalBad: "12 kg (Flexión de 30°)",
+                cervicalGood: "0 kg (Eje Neutro)"
+            },
+            large: {
+                nombre: "Estatura Grande",
+                alturaSujeto: 1.90,
+                torsoHeight: 0.58,
+                neckHeight: 0.09,
+                headRadius: 0.11,
+                femurLength: 0.48,
+                tibiaLength: 0.48,
+                upperArmLength: 0.32,
+                forearmLength: 0.28,
+                
+                chairHeightIdeal: 0.44,
+                chairHeightBad: 0.48, // Silla excesivamente alta
+                
+                badPostureText: "Al medir 1.90m, las mesas de 74cm te quedan muy bajas. Te encorvas violentamente sobre la laptop y las rodillas se comprimen contra el marco inferior del escritorio.",
+                goodPostureText: "Soporte ergonómico alto: El monitor se eleva 20cm mediante el soporte. La silla se ajusta a 44cm, lo que permite que tus pies descansen planos y las rodillas respiren holgadamente.",
+                
+                cervicalBad: "24 kg (Flexión de 50°)",
+                cervicalGood: "5.0 kg (Eje Neutro)"
+            }
+        };
+
+        let currentBiotipo = 'medium';
+        let isGoodPosture = true;
+        let useFootrest = false;
+        let useMonitorStand = false;
+        let useLumbarSupport = false;
+
+        // ELEMENTOS DOM
+        const btnBad = document.getElementById('btn-bad');
+        const btnGood = document.getElementById('btn-good');
+        const diagnosticText = document.getElementById('diagnostic-text');
+        const diagnosticIcon = document.getElementById('diagnostic-icon');
+        const txtCervicalLoad = document.getElementById('txt-cervical-load');
+        const txtKneeAngle = document.getElementById('txt-knee-angle');
+        const txtElbowAngle = document.getElementById('txt-elbow-angle');
+        const infoHeights = document.getElementById('info-heights');
+        const infoCirculation = document.getElementById('info-circulation');
+
+        const statusCervical = document.getElementById('status-dot-cervical');
+        const statusKnee = document.getElementById('status-dot-knee');
+        const statusElbow = document.getElementById('status-dot-elbow');
+
+        const toggleMonitorInput = document.getElementById('toggle-monitor');
+        const toggleFootrestInput = document.getElementById('toggle-footrest');
+        const toggleLumbarInput = document.getElementById('toggle-lumbar');
+
+        // VARIABLES THREE.JS
+        let scene, camera, renderer, controls;
+        let deskTop, deskStand, laptopBase, laptopScreen, footrestMesh, lumbarMesh;
+        
+        // Elementos del Avatar
+        let avatarGroup;
+        let pelvis, torso, head, neck, shoulderL, shoulderR;
+        let thighL, thighR, calfL, calfR, footL, footR;
+        let upperArmL, upperArmR, forearmL, forearmR;
+
+        // Eje visual (Láser)
+        let sightLine;
+
+        // Meshes reutilizables para redimensionamiento de huesos
+        let meshFemurL, meshFemurR, meshTibiaL, meshTibiaR, meshTorso;
+        let meshUpperArmL, meshUpperArmR, meshForearmL, meshForearmR;
+        let meshHead;
+
+        function init3D() {
+            const container = document.getElementById('three-canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xF4F2EF);
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+            camera.position.set(3.8, 1.8, 3.8);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05; 
+            controls.minDistance = 1.8;
+            controls.maxDistance = 8;
+            controls.target.set(0, 0.6, 0.1);
+
+            // Luces
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.65);
+            mainLight.position.set(4, 6, 4);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 1024;
+            mainLight.shadow.mapSize.height = 1024;
+            scene.add(mainLight);
+
+            // Luz de relleno lateral (Tono sutil verde salvia)
+            const fillLight = new THREE.DirectionalLight(0x7D9D85, 0.25);
+            fillLight.position.set(-4, 3, -4);
+            scene.add(fillLight);
+
+            // Construir escenario y avatar
+            construirPiso();
+            construirMesa();
+            construirSilla();
+            construirAccesorios();
+            construirAvatar();
+            construirLineasAuxiliares();
+
+            animate();
+            setBiotipo('medium'); // Inicialización por defecto
+        }
+
+        function construirPiso() {
+            const floorGeo = new THREE.PlaneGeometry(12, 12);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0xEDEAE6, roughness: 0.9 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Alfombra Zenplifica delimitadora (Anclaje Cognitivo)
+            const rugGeo = new THREE.PlaneGeometry(1.8, 1.8);
+            const rugMat = new THREE.MeshStandardMaterial({ color: 0xDFDCD8, roughness: 0.8 });
+            const rug = new THREE.Mesh(rugGeo, rugMat);
+            rug.rotation.x = -Math.PI / 2;
+            rug.position.set(0, 0.002, 0.2);
+            rug.receiveShadow = true;
+            scene.add(rug);
+        }
+
+        function construirMesa() {
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0xD7CBB5, roughness: 0.55 }); // Roble claro
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.6, roughness: 0.3 }); // Patas
+
+            // Tablero
+            deskTop = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.03, 0.75), woodMat);
+            deskTop.position.set(0, ALTURA_MESA - 0.015, -0.22);
+            deskTop.castShadow = true;
+            deskTop.receiveShadow = true;
+            scene.add(deskTop);
+
+            // Patas
+            const legGeo = new THREE.BoxGeometry(0.035, ALTURA_MESA - 0.03, 0.035);
+            const legPositions = [
+                [-0.62, (ALTURA_MESA - 0.03)/2, -0.52],
+                [0.62, (ALTURA_MESA - 0.03)/2, -0.52],
+                [-0.62, (ALTURA_MESA - 0.03)/2, 0.08],
+                [0.62, (ALTURA_MESA - 0.03)/2, 0.08]
+            ];
+
+            legPositions.forEach(p => {
+                const leg = new THREE.Mesh(legGeo, metalMat);
+                leg.position.set(p[0], p[1], p[2]);
+                leg.castShadow = true;
+                scene.add(leg);
+            });
+        }
+
+        function construirSilla() {
+            const plasticMat = new THREE.MeshStandardMaterial({ color: 0x2A2A2A, roughness: 0.6 });
+            const chromeMat = new THREE.MeshStandardMaterial({ color: 0xCCCCCC, metalness: 0.9, roughness: 0.1 });
+            const cushionMat = new THREE.MeshStandardMaterial({ color: 0x3A443D, roughness: 0.75 }); // Verde carbón
+
+            chairGroup = new THREE.Group();
+            chairGroup.position.set(0, 0, 0.5); // Posición detrás de la mesa
+
+            // Base estrella
+            const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.03, 5), plasticMat);
+            baseMesh.position.y = 0.06;
+            chairGroup.add(baseMesh);
+
+            // Pistón
+            pistonMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.35), chromeMat);
+            pistonMesh.position.y = 0.22;
+            chairGroup.add(pistonMesh);
+
+            // Cojín del Asiento
+            seatMesh = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.04, 0.44), cushionMat);
+            seatMesh.position.y = 0.42; 
+            seatMesh.castShadow = true;
+            chairGroup.add(seatMesh);
+
+            // Respaldo
+            backrestMesh = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.44, 0.04), plasticMat);
+            backrestMesh.position.set(0, 0.72, 0.2);
+            backrestMesh.castShadow = true;
+            chairGroup.add(backrestMesh);
+
+            // Cojín Lumbar
+            const lumbarMat = new THREE.MeshStandardMaterial({ color: 0x7D9D85, roughness: 0.5 });
+            lumbarMesh = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 0.04), lumbarMat);
+            lumbarMesh.position.set(0, 0.58, 0.17);
+            lumbarMesh.visible = false;
+            chairGroup.add(lumbarMesh);
+
+            scene.add(chairGroup);
+        }
+
+        function construirAccesorios() {
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.7, roughness: 0.2 });
+            const screenMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.15 });
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0xC39B62, roughness: 0.65 });
+
+            // 1. Soporte Monitor Wood (Dinámico)
+            deskStand = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.12, 0.22), woodMat);
+            deskStand.position.set(0, ALTURA_MESA + 0.06, -0.4);
+            deskStand.castShadow = true;
+            deskStand.visible = false;
+            scene.add(deskStand);
+
+            // 2. Laptop (Base y pantalla)
+            laptopBase = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.012, 0.20), metalMat);
+            laptopBase.position.set(0, ALTURA_MESA + 0.006, -0.2);
+            laptopBase.castShadow = true;
+            scene.add(laptopBase);
+
+            laptopScreen = new THREE.Group();
+            laptopScreen.position.set(0, ALTURA_MESA + 0.012, -0.3);
+            const panel = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.20, 0.008), metalMat);
+            panel.position.y = 0.10;
+            panel.castShadow = true;
+            const lcd = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.004), screenMat);
+            lcd.position.set(0, 0.10, 0.005);
+            laptopScreen.add(panel, lcd);
+            scene.add(laptopScreen);
+
+            // 3. Reposapiés (Dinámico)
+            const footrestMat = new THREE.MeshStandardMaterial({ color: 0x7D9D85, roughness: 0.6 });
+            footrestMesh = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.10, 0.26), footrestMat);
+            footrestMesh.position.set(0, 0.05, 0.14);
+            footrestMesh.castShadow = true;
+            footrestMesh.visible = false;
+            scene.add(footrestMesh);
+        }
+
+        function construirAvatar() {
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xF3EFE9, roughness: 0.55 }); // Crudo zen
+            const jointMat = new THREE.MeshStandardMaterial({ color: 0xD0C9C0, roughness: 0.5 }); // Gris piedra
+
+            avatarGroup = new THREE.Group();
+
+            // Pelvis (Raíz)
+            pelvis = new THREE.Group();
+            avatarGroup.add(pelvis);
+
+            // Torso (Rotación en X simula encorvamiento)
+            torso = new THREE.Group();
+            pelvis.add(torso);
+
+            meshTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.08, 0.5, 16), skinMat);
+            meshTorso.castShadow = true;
+            torso.add(meshTorso);
+
+            // Cuello
+            neck = new THREE.Group();
+            torso.add(neck);
+            const neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.03, 0.08), skinMat);
+            neck.add(neckMesh);
+
+            // Cabeza
+            head = new THREE.Group();
+            neck.add(head);
+            meshHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 32, 32), skinMat);
+            meshHead.castShadow = true;
+            head.add(meshHead);
+
+            // Hombros y Brazos
+            shoulderL = new THREE.Group();
+            shoulderR = new THREE.Group();
+            torso.add(shoulderL, shoulderR);
+
+            const sMesh = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 16), jointMat);
+            shoulderL.add(sMesh);
+            shoulderR.add(sMesh.clone());
+
+            upperArmL = new THREE.Group();
+            upperArmR = new THREE.Group();
+            shoulderL.add(upperArmL);
+            shoulderR.add(upperArmR);
+
+            meshUpperArmL = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.026, 0.28, 16), skinMat);
+            meshUpperArmL.castShadow = true;
+            upperArmL.add(meshUpperArmL);
+            meshUpperArmR = meshUpperArmL.clone();
+            upperArmR.add(meshUpperArmR);
+
+            forearmL = new THREE.Group();
+            forearmR = new THREE.Group();
+            upperArmL.add(forearmL);
+            upperArmR.add(forearmR);
+
+            meshForearmL = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.24, 16), skinMat);
+            meshForearmL.rotation.x = Math.PI / 2; // Orientado hacia el frente en reposo
+            meshForearmL.castShadow = true;
+            forearmL.add(meshForearmL);
+            meshForearmR = meshForearmL.clone();
+            forearmR.add(meshForearmR);
+
+            // Extremidades Inferiores (Sentado)
+            thighL = new THREE.Group();
+            thighR = new THREE.Group();
+            pelvis.add(thighL, thighR);
+
+            meshFemurL = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.036, 0.42, 16), skinMat);
+            meshFemurL.rotation.x = Math.PI / 2; // Muslos horizontales
+            meshFemurL.castShadow = true;
+            thighL.add(meshFemurL);
+            meshFemurR = meshFemurL.clone();
+            thighR.add(meshFemurR);
+
+            // Rodillas y Pantorrillas
+            calfL = new THREE.Group();
+            calfR = new THREE.Group();
+            thighL.add(calfL);
+            thighR.add(calfR);
+
+            // Importante: La tibia ahora está vertical por defecto (rotation.x = 0 la deja apuntando hacia abajo en el espacio local del muslo horizontal)
+            meshTibiaL = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.026, 0.42, 16), skinMat);
+            meshTibiaL.castShadow = true;
+            calfL.add(meshTibiaL);
+            meshTibiaR = meshTibiaL.clone();
+            calfR.add(meshTibiaR);
+
+            // Pies
+            footL = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.035, 0.16), jointMat);
+            calfL.add(footL);
+            footR = footL.clone();
+            calfR.add(footR);
+
+            scene.add(avatarGroup);
+        }
+
+        function construirLineasAuxiliares() {
+            const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineDashedMaterial({
+                color: 0x27ae60,
+                dashSize: 0.04,
+                gapSize: 0.02
+            });
+            sightLine = new THREE.Line(geometry, material);
+            sightLine.computeLineDistances();
+            scene.add(sightLine);
+        }
+
+        // MOTOR ERGONÓMICO AVANZADO - CALIBRACIÓN REALISTA DE ÁNGULOS Y POSICIONES
+        function actualizarSimulacion() {
+            const config = BIOTIPOS[currentBiotipo];
+            const ySeat = isGoodPosture ? config.chairHeightIdeal : config.chairHeightBad;
+
+            // 1. Ajuste de la Silla en el espacio
+            chairGroup.position.z = isGoodPosture ? 0.36 : 0.43; // Más cerca de la mesa en postura correcta
+            seatMesh.position.y = ySeat;
+            pistonMesh.scale.y = ySeat / 0.44;
+            pistonMesh.position.y = ySeat / 2;
+            lumbarMesh.visible = useLumbarSupport && isGoodPosture;
+
+            // 2. Modificación de longitudes óseas reales del Avatar
+            pelvis.position.set(0, ySeat + 0.02, chairGroup.position.z);
+
+            // Huesos de las piernas (Muslos)
+            thighL.position.set(-0.11, 0, -0.04);
+            thighR.position.set(0.11, 0, -0.04);
+
+            meshFemurL.scale.set(1, config.femurLength / 0.42, 1);
+            meshFemurR.scale.set(1, config.femurLength / 0.42, 1);
+            meshFemurL.position.z = -config.femurLength / 2;
+            meshFemurR.position.z = -config.femurLength / 2;
+
+            // Rodillas y Pantorrillas
+            calfL.position.set(0, 0, -config.femurLength);
+            calfR.position.set(0, 0, -config.femurLength);
+
+            meshTibiaL.scale.set(1, config.tibiaLength / 0.42, 1);
+            meshTibiaR.scale.set(1, config.tibiaLength / 0.42, 1);
+            meshTibiaL.position.y = -config.tibiaLength / 2;
+            meshTibiaR.position.y = -config.tibiaLength / 2;
+
+            // Colocación exacta del pie en el extremo inferior de la pantorrilla
+            footL.position.set(0, -config.tibiaLength, 0.05);
+            footR.position.set(0, -config.tibiaLength, 0.05);
+
+            // Altura y escalado del Torso
+            meshTorso.scale.set(1, config.torsoHeight / 0.5, 1);
+            meshTorso.position.y = config.torsoHeight / 2;
+
+            neck.position.y = config.torsoHeight;
+            neck.scale.set(1, config.neckHeight / 0.075, 1);
+
+            meshHead.scale.set(config.headRadius / 0.09, config.headRadius / 0.09, config.headRadius / 0.09);
+            meshHead.position.y = config.neckHeight + config.headRadius;
+
+            // Hombros
+            shoulderL.position.set(-0.14, config.torsoHeight - 0.04, 0);
+            shoulderR.position.set(0.14, config.torsoHeight - 0.04, 0);
+
+            meshUpperArmL.scale.set(1, config.upperArmLength / 0.28, 1);
+            meshUpperArmR.scale.set(1, config.upperArmLength / 0.28, 1);
+            meshUpperArmL.position.y = -config.upperArmLength / 2;
+            meshUpperArmR.position.y = -config.upperArmLength / 2;
+
+            forearmL.position.y = -config.upperArmLength;
+            forearmR.position.y = -config.upperArmLength;
+
+            meshForearmL.scale.set(1, 1, config.forearmLength / 0.24);
+            meshForearmR.scale.set(1, 1, config.forearmLength / 0.24);
+            
+            // IMPORTANTE: Modificación de eje Z a negativo para que el cilindro se extienda hacia el frente (escritorio)
+            meshForearmL.position.z = -config.forearmLength / 2;
+            meshForearmR.position.z = -config.forearmLength / 2;
+
+            // 3. Ajuste de Accesorios de Escritorio
+            deskStand.visible = useMonitorStand;
+            if (useMonitorStand) {
+                laptopBase.position.y = ALTURA_MESA + 0.12 + 0.006;
+                laptopScreen.position.y = ALTURA_MESA + 0.12 + 0.012;
+            } else {
+                laptopBase.position.y = ALTURA_MESA + 0.006;
+                laptopScreen.position.y = ALTURA_MESA + 0.012;
+            }
+
+            footrestMesh.visible = useFootrest;
+
+            // 4. CÁLCULO CINEMÁTICO ERGONÓMICO EN SENTADO SANO VS DAÑINO
+            if (isGoodPosture) {
+                // POSTURA CORRECTA ZEN (Erecta, relajada, alineada)
+                torso.rotation.set(0, 0, 0);
+                neck.rotation.set(0, 0, 0);
+                head.rotation.set(0.04, 0, 0); // Foco visual recto
+
+                // Muslos perfectamente horizontales (paralelos a la silla)
+                thighL.rotation.set(0, 0, 0);
+                thighR.rotation.set(0, 0, 0);
+
+                // Tibias completamente verticales (Ángulo de 90° con los muslos)
+                calfL.rotation.set(0, 0, 0);
+                calfR.rotation.set(0, 0, 0);
+
+                // Ajuste angular si se utiliza el banquillo/reposapiés
+                if (useFootrest) {
+                    thighL.rotation.x = -0.05; // Leve elevación cómoda del muslo
+                    thighR.rotation.x = -0.05;
+                    calfL.rotation.x = 0.05;  // Mantiene los pies firmes
+                    calfR.rotation.x = 0.05;
+                    // Mover pies a la altura del reposapiés
+                    footL.position.y = -config.tibiaLength + 0.05;
+                    footR.position.y = -config.tibiaLength + 0.05;
+                }
+
+                // Brazos apoyados de manera natural y ergonómica hacia el frente, descansando sobre la mesa
+                upperArmL.rotation.set(0.35, 0, -0.05);
+                upperArmR.rotation.set(0.35, 0, 0.05);
+                forearmL.rotation.set(-0.65, 0, 0);
+                forearmR.rotation.set(-0.65, 0, 0);
+
+                actualizarLaser(true);
+
+            } else {
+                // POSTURA INCORRECTA (Slouching / Deslizado en silla)
+                // Pelvis deslizada hacia adelante (causando compresión lumbar)
+                pelvis.position.z = chairGroup.position.z - 0.08;
+
+                // El torso cae arqueado hacia atrás, el cuello jorobado hacia adelante
+                torso.rotation.set(-0.18, 0, 0);
+                neck.rotation.set(0.48, 0, 0); // Joroba / Cuello adelantado
+                head.rotation.set(-0.35, 0, 0); // Mirada inclinada hacia la laptop plana
+
+                // Las rodillas quedan estiradas y desalineadas hacia adelante
+                thighL.rotation.set(-0.25, 0, -0.05);
+                thighR.rotation.set(-0.25, 0, 0.05);
+
+                // Pantorrillas estiradas sin apoyarse correctamente
+                calfL.rotation.set(-0.18, 0, 0);
+                calfR.rotation.set(-0.18, 0, 0);
+
+                // Brazos colapsados hacia el frente alcanzando el teclado de la laptop plana
+                upperArmL.rotation.set(0.25, 0, -0.05);
+                upperArmR.rotation.set(0.25, 0, 0.05);
+                forearmL.rotation.set(-0.55, 0, 0);
+                forearmR.rotation.set(-0.55, 0, 0);
+
+                actualizarLaser(false);
+            }
+        }
+
+        function actualizarLaser(isGood) {
+            const headWorldPos = new THREE.Vector3();
+            meshHead.getWorldPosition(headWorldPos);
+            
+            // Ajuste al plano frontal de la cara
+            headWorldPos.z -= (BIOTIPOS[currentBiotipo].headRadius + 0.01);
+            headWorldPos.y += 0.01;
+
+            const targetPos = new THREE.Vector3();
+            if (isGood) {
+                targetPos.set(0, laptopScreen.position.y + 0.18, laptopScreen.position.z);
+                sightLine.material.color.setHex(0x7D9D85); // Verde Salvia Zenplifica
+            } else {
+                targetPos.set(0, laptopBase.position.y, laptopBase.position.z + 0.04);
+                sightLine.material.color.setHex(0xe74c3c); // Rojo Estrés
+            }
+
+            const points = [headWorldPos, targetPos];
+            sightLine.geometry.setFromPoints(points);
+            sightLine.computeLineDistances();
+        }
+
+        // CONTROLADORES DE EVENTO DE INTERFAZ DE USUARIO
+        function setBiotipo(type) {
+            currentBiotipo = type;
+            
+            document.querySelectorAll('.biotipo-btn').forEach(btn => {
+                btn.classList.remove('border-[#7D9D85]', 'bg-[#7D9D85]/10', 'text-neutral-900');
+                btn.classList.add('border-neutral-200', 'bg-[#FDFBF7]');
+            });
+
+            const activeBtn = document.getElementById(`btn-${type}`);
+            activeBtn.classList.remove('border-neutral-200', 'bg-[#FDFBF7]');
+            activeBtn.classList.add('border-[#7D9D85]', 'bg-[#7D9D85]/10', 'text-neutral-900');
+
+            // Recomendación automática inteligente según estatura (El usuario puede cambiarlo igualmente)
+            if (type === 'small') {
+                toggleFootrestInput.checked = true;
+                useFootrest = true;
+                toggleMonitorInput.checked = false;
+                useMonitorStand = false;
+            } else if (type === 'large') {
+                toggleFootrestInput.checked = false;
+                useFootrest = false;
+                toggleMonitorInput.checked = true;
+                useMonitorStand = true;
+            } else {
+                toggleFootrestInput.checked = false;
+                useFootrest = false;
+                toggleMonitorInput.checked = false;
+                useMonitorStand = false;
+            }
+
+            actualizarUI();
+        }
+
+        function setPostura(good) {
+            isGoodPosture = good;
+
+            if (good) {
+                btnGood.className = "py-2.5 rounded-lg text-xs font-bold transition-all bg-white text-[#7D9D85] shadow-sm active:scale-95 cursor-pointer border border-[#7D9D85]/20";
+                btnBad.className = "py-2.5 rounded-lg text-xs font-bold transition-all text-neutral-600 hover:text-neutral-900 active:scale-95 cursor-pointer";
+            } else {
+                btnBad.className = "py-2.5 rounded-lg text-xs font-bold transition-all bg-white text-rose-500 shadow-sm active:scale-95 cursor-pointer border border-rose-200";
+                btnGood.className = "py-2.5 rounded-lg text-xs font-bold transition-all text-neutral-600 hover:text-neutral-900 active:scale-95 cursor-pointer";
+            }
+
+            actualizarUI();
+        }
+
+        function toggleMonitorStand() {
+            useMonitorStand = toggleMonitorInput.checked;
+            actualizarUI();
+        }
+
+        function toggleFootrest() {
+            useFootrest = toggleFootrestInput.checked;
+            actualizarUI();
+        }
+
+        function toggleLumbar() {
+            useLumbarSupport = toggleLumbarInput.checked;
+            actualizarUI();
+        }
+
+        function actualizarUI() {
+            actualizarSimulacion();
+
+            const config = BIOTIPOS[currentBiotipo];
+            const ySeat = isGoodPosture ? config.chairHeightIdeal : config.chairHeightBad;
+
+            if (isGoodPosture) {
+                diagnosticIcon.innerText = "🌿";
+                diagnosticText.innerText = config.goodPostureText;
+                
+                // Cervicales
+                txtCervicalLoad.innerText = config.cervicalGood;
+                txtCervicalLoad.className = "block text-xs font-bold text-emerald-600";
+                statusCervical.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm";
+
+                // Rodillas
+                if (!useFootrest && config.tibiaLength < ySeat) {
+                    txtKneeAngle.innerText = "Pies en el Aire (Estrés)";
+                    txtKneeAngle.className = "block text-xs font-bold text-amber-500";
+                    statusKnee.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm";
+                } else {
+                    txtKneeAngle.innerText = "90°-95° (Correcto)";
+                    txtKneeAngle.className = "block text-xs font-bold text-emerald-600";
+                    statusKnee.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm";
+                }
+
+                // Codos
+                txtElbowAngle.innerText = "90°-100° (Apoyo Sano)";
+                txtElbowAngle.className = "block text-xs font-bold text-emerald-600";
+                statusElbow.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm";
+
+            } else {
+                diagnosticIcon.innerText = "⚠️";
+                diagnosticText.innerText = config.badPostureText;
+
+                // Cervicales
+                txtCervicalLoad.innerText = config.cervicalBad;
+                txtCervicalLoad.className = "block text-xs font-bold text-rose-500 animate-pulse";
+                statusCervical.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm";
+
+                // Rodillas
+                txtKneeAngle.innerText = "Extendido / Inestable";
+                txtKneeAngle.className = "block text-xs font-bold text-rose-500";
+                statusKnee.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm";
+
+                // Codos
+                txtElbowAngle.innerText = "Hombros encogidos";
+                txtElbowAngle.className = "block text-xs font-bold text-rose-500";
+                statusElbow.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm";
+            }
+
+            // Datos técnicos complementarios del footer
+            infoHeights.innerHTML = `<strong>Estatura:</strong> ${config.alturaSujeto} m.<br><strong>Asiento a:</strong> ${(ySeat * 100).toFixed(0)} cm.<br><strong>Mesa estándar:</strong> 74 cm.`;
+            
+            const realCirculation = (isGoodPosture && (config.tibiaLength >= ySeat || useFootrest)) 
+                ? "Óptima: Sin compresión lumbar ni poplítea." 
+                : "⚠️ Alerta: Alta presión en la zona femoral, riesgo de adormecimiento.";
+            infoCirculation.innerHTML = realCirculation;
+        }
+
+        // BUCLE ANIMACION
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // RESPONSIVIDAD DEL CANVAS
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('three-canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+
+        // INICIALIZACIÓN COMPLETA
+        window.onload = function() {
+            init3D();
+        };
+    </script>
+</body>
+</html>
